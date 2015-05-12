@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import teammates.client.remoteapi.RemoteApiClient;
@@ -63,11 +64,13 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
     }
 
     // modify this value to migrate evaluations for all courses, or for a specific course
-    private boolean isForAllCourses = false;
+    private boolean isForAllCourses = true;
     //modify this to delete the evaluation after migrating
-    private boolean isDeletingEvaluations = false;
+    private boolean isDeletingEvaluations = true;
     //modify this to make changes to the database
     private boolean isPreview = false;
+    
+    private int submissionCount = 0;
 
     @Override
     protected void doOperation() {
@@ -84,7 +87,7 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
             // Specify courseId. Feedback sessions will be made for all evaluations in the course, 
             // the evaluations will be deleted.
              
-            String courseId = "oldcourse";
+            String courseId = "CS2103-Aug2013";
             convertEvaluationsForCourse(courseId);
         }
         
@@ -119,8 +122,16 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
             } catch (Exception e) {
                 printErrorMessage("Something went wrong");
                 e.printStackTrace();
+                confirmToContinue();
             }
         }
+    }
+
+
+    private void confirmToContinue() {
+        System.out.println("An error occurred, continue?");
+        Scanner s = new Scanner(System.in);
+        s.next();
     }
     
     protected void deleteEvaluation(String courseId, String evalName) {
@@ -140,7 +151,7 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
 
 
     private void printErrorMessage(String message) {
-        System.out.println("\n\n"+ message + "\n");
+        System.out.println(message);
     }
     
     protected void convertOneEvaluationToFeedbackSession(EvaluationAttributes eval, String newFeedbackSessionName) throws Exception {
@@ -162,7 +173,7 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
             return;
         }
         String instEmail = instructorsForCourse.get(0).email;//Use email of any instructor in the course.
-        System.out.print("[" + eval.courseId + ":" + eval.name + "]");
+        System.out.println("[" + eval.courseId + ":" + eval.name + "]");
         String creatorEmail = instEmail;
         Text instructions = eval.instructions;
         Date createdTime = (new Date()).compareTo(eval.startTime) > 0 ? new Date() : eval.startTime; //Now, or opening time if start time is earlier.
@@ -216,8 +227,6 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
         //Create feedback questions
         List<FeedbackQuestionAttributes> fqas = createFeedbackQuestions(eval, feedbackSessionName, courseId, creatorEmail, peerFeedback);
         List<Object> fqEntities = fqDb.createAndReturnEntities(fqas);
-        
-        System.out.println("Created questions");
         
         List<String> fqIds = new ArrayList<String>();
         
@@ -381,6 +390,11 @@ public class DataMigrationEvaluationsToFeedbackSessions extends RemoteApiClient 
                     validResponses.add(response);
                 }
             }   
+        }
+        
+        submissionCount++;
+        if (submissionCount % 100 == 0) {
+            System.out.print("[" + submissionCount + "]");
         }
            
         return validResponses;
