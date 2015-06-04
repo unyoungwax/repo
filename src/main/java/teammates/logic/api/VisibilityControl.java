@@ -7,7 +7,7 @@ import teammates.common.datatransfer.FeedbackResponseCommentAttributes;
 
 public class VisibilityControl {
 
-    public boolean isCommentPublicToRecipient(CommentAttributes comment) {
+    public static boolean isCommentPublicToRecipient(CommentAttributes comment) {
         return comment.showCommentTo != null
                 && (comment.isVisibleTo(CommentParticipantType.PERSON)
                     || comment.isVisibleTo(CommentParticipantType.TEAM)
@@ -15,7 +15,7 @@ public class VisibilityControl {
                     || comment.isVisibleTo(CommentParticipantType.COURSE));
     }
     
-    public boolean isResponseCommentPublicToRecipient(FeedbackResponseCommentAttributes comment) {
+    public static boolean isResponseCommentPublicToRecipient(FeedbackResponseCommentAttributes comment) {
         return (comment.isVisibleTo(FeedbackParticipantType.GIVER)
              || comment.isVisibleTo(FeedbackParticipantType.RECEIVER)
              || comment.isVisibleTo(FeedbackParticipantType.OWN_TEAM_MEMBERS)

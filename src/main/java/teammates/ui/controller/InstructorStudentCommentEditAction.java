@@ -20,6 +20,7 @@ import teammates.common.exception.InvalidParametersException;
 import teammates.common.util.Assumption;
 import teammates.common.util.Const;
 import teammates.logic.api.GateKeeper;
+import teammates.logic.api.VisibilityControl;
 
 /**
  * Action: Edit or delete the {@link CommentAttributes} based on the given editType (edit|delete)
@@ -179,7 +180,7 @@ public class InstructorStudentCommentEditAction extends Action {
             }
         }
         //if a comment is public to recipient (except Instructor), it's a pending comment
-        if(isCommentPublicToRecipient(comment)){
+        if(VisibilityControl.isCommentPublicToRecipient(comment)){
             comment.sendingState = CommentSendingState.PENDING;
         }
         comment.commentText = commentText;
@@ -188,11 +189,4 @@ public class InstructorStudentCommentEditAction extends Action {
         return comment;
     }
 
-    private boolean isCommentPublicToRecipient(CommentAttributes comment) {
-        return comment.showCommentTo != null
-                && (comment.isVisibleTo(CommentParticipantType.PERSON)
-                    || comment.isVisibleTo(CommentParticipantType.TEAM)
-                    || comment.isVisibleTo(CommentParticipantType.SECTION)
-                    || comment.isVisibleTo(CommentParticipantType.COURSE));
-    }
 }

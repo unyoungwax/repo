@@ -14,6 +14,7 @@ import teammates.common.exception.InvalidParametersException;
 import teammates.common.util.Assumption;
 import teammates.common.util.Const;
 import teammates.logic.api.GateKeeper;
+import teammates.logic.api.VisibilityControl;
 
 import com.google.appengine.api.datastore.Text;
 
@@ -75,7 +76,7 @@ public class InstructorFeedbackResponseCommentEditAction extends Action {
             }
         }
         //Edit sending state
-        if (isResponseCommentPublicToRecipient(feedbackResponseComment) && session.isPublished()) {
+        if (VisibilityControl.isResponseCommentPublicToRecipient(feedbackResponseComment) && session.isPublished()) {
             feedbackResponseComment.sendingState = CommentSendingState.PENDING;
         }
         
@@ -102,14 +103,6 @@ public class InstructorFeedbackResponseCommentEditAction extends Action {
         data.comment = feedbackResponseComment;
 
         return createAjaxResult(Const.ViewURIs.INSTRUCTOR_FEEDBACK_RESULTS_BY_RECIPIENT_GIVER_QUESTION, data);
-    }
-
-    private boolean isResponseCommentPublicToRecipient(FeedbackResponseCommentAttributes comment) {
-        return (comment.isVisibleTo(FeedbackParticipantType.GIVER)
-                    || comment.isVisibleTo(FeedbackParticipantType.RECEIVER)
-                    || comment.isVisibleTo(FeedbackParticipantType.OWN_TEAM_MEMBERS)
-                    || comment.isVisibleTo(FeedbackParticipantType.RECEIVER_TEAM_MEMBERS)
-                    || comment.isVisibleTo(FeedbackParticipantType.STUDENTS));
     }
     
     private void verifyAccessibleForInstructorToFeedbackResponseComment(String feedbackSessionName,

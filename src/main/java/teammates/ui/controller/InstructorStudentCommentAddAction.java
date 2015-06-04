@@ -22,6 +22,7 @@ import teammates.common.util.Assumption;
 import teammates.common.util.Const;
 import teammates.common.util.Url;
 import teammates.logic.api.GateKeeper;
+import teammates.logic.api.VisibilityControl;
 
 /**
  * Action: Create a new {@link CommentAttributes}
@@ -169,21 +170,13 @@ public class InstructorStudentCommentAddAction extends Action {
         }
         
         //if a comment is public to recipient (except Instructor), it's a pending comment
-        if(isCommentPublicToRecipient(comment)){
+        if(VisibilityControl.isCommentPublicToRecipient(comment)){
             comment.sendingState = CommentSendingState.PENDING;
         }
         comment.createdAt = new Date();
         comment.commentText = commentText;
         
         return comment;
-    }
-
-    private boolean isCommentPublicToRecipient(CommentAttributes comment) {
-        return comment.showCommentTo != null
-                && (comment.isVisibleTo(CommentParticipantType.PERSON)
-                    || comment.isVisibleTo(CommentParticipantType.TEAM)
-                    || comment.isVisibleTo(CommentParticipantType.SECTION)
-                    || comment.isVisibleTo(CommentParticipantType.COURSE));
     }
     
     public String getCourseStudentDetailsLink(String courseId, String studentEmail){
