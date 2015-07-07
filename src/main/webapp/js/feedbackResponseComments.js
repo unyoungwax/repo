@@ -197,36 +197,39 @@ function registerResponseCommentsEvent() {
     $("div[id^=plainCommentText]").css("margin-left","15px");
 
     // Load add comment form by ajax
-    $('[id^=showResponseCommentAddForm]').each(function() {
-        // this refers to the form containing the data for retrieving the Add Response Comment form
-        // not the Add Response Comment Form itself
-        var form = $(this).find('form'); 
+    //$('[id^=showResponseCommentAddForm]').each();
+}
 
-        var courseid = $(form).find('input[name=courseid]').val();
-        var fsname = $(form).find('input[name=fsname]').val();
-        var questionid = $(form).find('input[name=questionid]').val();
-        var responseid = $(form).find('input[name=responseid]').val();
+function loadResponseCommentAddFormByAjax(recipientIndex, giverIndex, qnIndx) {
+    var formContainerId = 'showResponseCommentAddForm' + '-' + recipientIndex + '-' + giverIndex + '-' + qnIndx;
+    var $addResponseCommentFormContainer = $('#' + formContainerId);
+    // the variable form refers to the form containing the data for retrieving the Add Response Comment form
+    // not the Add Response Comment Form itself
+    var $form = $addResponseCommentFormContainer.find('form'); 
 
-        $.ajax({
-            type: 'GET',
-            url: form.prop("action"),
-            data: {
-                courseid: courseid, 
-                fsname: fsname, 
-                questionid: questionid, 
-                responseid: responseid
-            },
-            beforeSend: function() {
-                $(this).html("<img src='/images/ajax-loader.gif'/>");
-            },
-            success: function(data) {
-                console.log(data);
-                $(this).html(data);
-                $(this).find("a[id^='button_save_comment_for_add']").click(addCommentHandler);
-            }
+    var courseid = $form.find('input[name=courseid]').val();
+    var fsname = $form.find('input[name=fsname]').val();
+    var questionid = $form.find('input[name=questionid]').val();
+    var responseid = $form.find('input[name=responseid]').val();
 
-        });
-    });
+    $.ajax({
+        type: 'GET', 
+        url: $form.prop("action"), 
+        data: {
+            courseid: courseid, 
+            fsname: fsname, 
+            questionid: questionid, 
+            responseid: responseid
+        },
+        beforeSend: function() {
+            $addResponseCommentFormContainer.html("<img src='/images/ajax-loader.gif'/>");
+        },
+        success: function(data) {
+            $addResponseCommentFormContainer.html(data);
+            $addResponseCommentFormContainer.find("a[id^='button_save_comment_for_add']")
+                                            .click(addCommentHandler);
+        }
+    });    
 }
 
 function registerResponseCommentCheckboxEvent() {
@@ -333,6 +336,8 @@ function setFormErrorMessage(submitButton, msg) {
 }
 
 function showResponseCommentAddForm(recipientIndex, giverIndex, qnIndx) {
+    loadResponseCommentAddFormByAjax(recipientIndex, giverIndex, qnIndx);
+
     var id = "-" + recipientIndex + "-" + giverIndex + "-" + qnIndx;
     $("#responseCommentTable" + id).show();
     if ($("#responseCommentTable" + id + " > li").length <= 1) {
