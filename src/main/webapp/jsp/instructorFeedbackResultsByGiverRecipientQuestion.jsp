@@ -115,12 +115,14 @@
                         Map<String, List<FeedbackResponseAttributes> > giverData = responsesFromGiver.getValue();
                         Object[] giverDataArray =  giverData.keySet().toArray();
                         FeedbackResponseAttributes firstResponse = giverData.get(giverDataArray[0]).get(0);
+                        // giverEmail can be in the format "[student@example.com]'s Team"
                         String targetEmail = firstResponse.giverEmail.replace(Const.TEAM_OF_EMAIL_OWNER,"");
                         boolean isGiverVisible = data.bundle.isGiverVisible(firstResponse);
                         String targetEmailDisplay = firstResponse.giverEmail;
                         String mailtoStyleAttr = (targetEmailDisplay.contains("@@")) ? "style=\"display:none;\"" : "";
                     %>
                     <%
+                        // if change in currentTeam
                         if (currentTeam != null && !(data.bundle.getTeamNameForEmail(targetEmail).isEmpty()
                                                      ? currentTeam.equals(data.bundle.getNameForEmail(targetEmail))
                                                      : currentTeam.equals(data.bundle.getTeamNameForEmail(targetEmail)))) {
