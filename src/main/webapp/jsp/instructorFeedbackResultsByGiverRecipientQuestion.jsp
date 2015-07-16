@@ -17,6 +17,7 @@
 <%@ page import="teammates.common.datatransfer.FeedbackQuestionDetails"%>
 <%@ page import="teammates.common.datatransfer.FeedbackQuestionAttributes"%>
 <%@ page import="teammates.ui.template.InstructorResultsModerationButton" %>
+<%@ page import="teammates.ui.template.GRQNoResponseRow" %>
 <%
     InstructorFeedbackResultsPageData data = (InstructorFeedbackResultsPageData) request.getAttribute("data");
     FieldValidator validator = new FieldValidator();
@@ -143,48 +144,23 @@
                             
                             for (String email : teamMembersWithNoResponses) {
                         %>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        From: 
-                                        <%  if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, email).isEmpty()) { %>
-                                            <div class="middlealign profile-pic-icon-hover inline panel-heading-text" data-link="<%=data.getProfilePictureLink(email)%>">
-                                                <strong><%=data.bundle.getFullNameFromRoster(email)%></strong>
-                                                <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                                <a href="mailTo:<%=email%>"  >[<%=email%>]</a>
-                                            </div>
-                                        <%
-                                            } else {
-                                        %>
-                                            <div class="inline panel-heading-text">
-                                                <strong><%=data.bundle.getFullNameFromRoster(email)%></strong>
-                                                <a href="mailTo:<%=email%>"  >[<%=email%>]</a>
-                                            </div>
-                                        <%
-                                            }
-                                        %>
-                                        <div class="pull-right">
-                                            <% 
-                                                boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
-                                                        data.bundle.getSectionFromRoster(email), data.feedbackSessionName,
-                                                        Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                                                InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
-                                                        !isAllowedToModerate, "btn btn-default btn-xs", email, data.courseId, data.feedbackSessionName,
-                                                        null, "Moderate Responses");
-                                                pageContext.setAttribute("moderationButton", moderationButton);
-                                            %>
-                                            <r:moderationsButton moderationButton="${moderationButton}" />
-                                            &nbsp;
-                                            <div class="display-icon" style="display:inline;">
-                                                <span class='glyphicon <%=!shouldCollapsed ? "glyphicon-chevron-up" : "glyphicon-chevron-down"%> pull-right'></span>
-                                            </div>                
-                                        </div>
-                                    </div>
-                                    <div class='panel-collapse collapse in'>
-                                        <div class="panel-body"> 
-                                            <i>There are no responses given by this user</i> 
-                                        </div>
-                                    </div>
-                                </div>
+                            <% 
+                                boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
+                                        data.bundle.getSectionFromRoster(email), data.feedbackSessionName,
+                                        Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                                InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
+                                        !isAllowedToModerate, "btn btn-default btn-xs", email, data.courseId, data.feedbackSessionName,
+                                        null, "Moderate Responses");
+                                
+                                String profilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, email).isEmpty()
+                                                        ? data.getProfilePictureLink(email) : null;
+                                
+                                GRQNoResponseRow responseHeader = new GRQNoResponseRow(
+                                        email, data.bundle.getFullNameFromRoster(email),
+                                        profilePicture, moderationButton);
+                                pageContext.setAttribute("responseHeader", responseHeader);
+                            %>
+                            <r:grqResponse response="${responseHeader}" isCollapsed="${data.shouldCollapsed}" />
                         <%
                             }
                         %>
@@ -912,50 +888,23 @@
                     
                     for (String email : teamMembersWithNoResponses) {
                 %>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            From: 
-                            <%
-                                if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, email).isEmpty()) {
-                            %>
-                                <div class="middlealign profile-pic-icon-hover inline panel-heading-text" data-link="<%=data.getProfilePictureLink(email)%>">
-                                    <strong><%=data.bundle.getFullNameFromRoster(email)%></strong>
-                                    <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                    <a href="mailTo:<%=email%>"  >[<%=email%>]</a>
-                                </div>
-                            <%
-                                } else {
-                            %>
-                                <div class="inline panel-heading-text">
-                                    <strong><%=data.bundle.getFullNameFromRoster(email)%></strong>
-                                    <a href="mailTo:<%=email%>"  >[<%=email%>]</a>
-                                </div>
-                            <%
-                                }
-                            %>
-                            <div class="pull-right">
-                                <% 
-                                    boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
-                                            data.bundle.getSectionFromRoster(email), data.feedbackSessionName,
-                                            Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                                    InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
-                                            !isAllowedToModerate, "btn btn-default btn-xs", email, data.courseId, data.feedbackSessionName,
-                                            null, "Moderate Responses");
-                                    pageContext.setAttribute("moderationButton", moderationButton);
-                                %>
-                                <r:moderationsButton moderationButton="${moderationButton}" />
-                                &nbsp;
-                                <div class="display-icon" style="display:inline;">
-                                    <span class='glyphicon <%=!shouldCollapsed ? "glyphicon-chevron-up" : "glyphicon-chevron-down"%> pull-right'></span>
-                                </div>                
-                            </div>
-                        </div>
-                        <div class='panel-collapse collapse in'>
-                            <div class="panel-body"> 
-                                <i>There are no responses given by this user</i> 
-                            </div>
-                        </div>
-                    </div>
+                    <% 
+                        boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
+                                data.bundle.getSectionFromRoster(email), data.feedbackSessionName,
+                                Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                        InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
+                                !isAllowedToModerate, "btn btn-default btn-xs", email, data.courseId, data.feedbackSessionName,
+                                null, "Moderate Responses");
+                        
+                        String profilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, email).isEmpty()
+                                                ? data.getProfilePictureLink(email) : null;
+                        
+                        GRQNoResponseRow responseHeader = new GRQNoResponseRow(
+                                email, data.bundle.getFullNameFromRoster(email),
+                                profilePicture, moderationButton);
+                        pageContext.setAttribute("responseHeader", responseHeader);
+                    %>
+                    <r:grqResponse response="${responseHeader}" isCollapsed="${data.shouldCollapsed}" />
                 <%
                     }
 
@@ -991,50 +940,23 @@
                         Collections.sort(teamMembers);
                         for (String teamMember : teamMembers) {
                     %>
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                From: 
-                                <%
-                                   if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, teamMember).isEmpty()) {
-                                %>
-                                    <div class="middlealign profile-pic-icon-hover inline panel-heading-text" data-link="<%=data.getProfilePictureLink(teamMember)%>">
-                                        <strong><%=data.bundle.getFullNameFromRoster(teamMember)%></strong>
-                                        <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                        <a href="mailTo:<%=teamMember%>"  >[<%=teamMember%>]</a>
-                                    </div>
-                                <%
-                                    } else {
-                                %>
-                                    <div class="inline panel-heading-text">
-                                        <strong><%=data.bundle.getFullNameFromRoster(teamMember)%></strong>
-                                        <a href="mailTo:<%=teamMember%>"  >[<%=teamMember%>]</a>
-                                    </div>
-                                <%
-                                    }
-                                %>
-                                <div class="pull-right">
-                                    <% 
-                                        boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
-                                                data.bundle.getSectionFromRoster(teamMember), data.feedbackSessionName,
-                                                Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                                        InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
-                                                !isAllowedToModerate, "btn btn-default btn-xs", teamMember, data.courseId, data.feedbackSessionName,
-                                                null, "Moderate Responses");
-                                        pageContext.setAttribute("moderationButton", moderationButton);
-                                    %>
-                                    <r:moderationsButton moderationButton="${moderationButton}" />
-                                    &nbsp;
-                                    <div class="display-icon" style="display:inline;">
-                                        <span class='glyphicon <%=!shouldCollapsed ? "glyphicon-chevron-up" : "glyphicon-chevron-down"%> pull-right'></span>
-                                    </div>                
-                                </div>
-                            </div>
-                            <div class='panel-collapse collapse in'>
-                                <div class="panel-body"> 
-                                    <i>There are no responses given by this user</i> 
-                                </div>
-                            </div>
-                        </div>          
+                        <% 
+                            boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
+                                    data.bundle.getSectionFromRoster(teamMember), data.feedbackSessionName,
+                                    Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                            InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
+                                    !isAllowedToModerate, "btn btn-default btn-xs", teamMember, data.courseId, data.feedbackSessionName,
+                                    null, "Moderate Responses");
+                            
+                            String profilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, teamMember).isEmpty()
+                                                    ? data.getProfilePictureLink(teamMember) : null;
+                            
+                            GRQNoResponseRow responseHeader = new GRQNoResponseRow(
+                                    teamMember, data.bundle.getFullNameFromRoster(teamMember),
+                                    profilePicture, moderationButton);
+                            pageContext.setAttribute("responseHeader", responseHeader);
+                        %>
+                        <r:grqResponse response="${responseHeader}" isCollapsed="${data.shouldCollapsed}" />
                     <%
                         }
                         if (groupByTeamEnabled) {
@@ -1094,50 +1016,23 @@
                                         }
                                         for (String teamMember : teamMembers) {
                                     %>
-                                        <div class="panel panel-default">
-                                            <div class="panel-heading">
-                                                From: 
-                                                <%
-                                                   if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, teamMember).isEmpty()) {
-                                                %>
-                                                    <div class="middlealign profile-pic-icon-hover inline panel-heading-text" data-link="<%=data.getProfilePictureLink(teamMember)%>">
-                                                        <strong><%=data.bundle.getFullNameFromRoster(teamMember)%></strong>
-                                                        <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                                        <a href="mailTo:<%= teamMember%>">[<%=teamMember%>]</a>
-                                                    </div>
-                                                <%
-                                                    } else {
-                                                %>
-                                                    <div class="inline panel-heading-text">
-                                                        <strong><%=data.bundle.getFullNameFromRoster(teamMember)%></strong>
-                                                        <a href="mailTo:<%= teamMember%>"  >[<%=teamMember%>]</a>
-                                                    </div>
-                                                <%
-                                                    }
-                                                %>
-                                                <div class="pull-right">
-                                                    <% 
-                                                         boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
-                                                                data.bundle.getSectionFromRoster(teamMember), data.feedbackSessionName,
-                                                                Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                                                        InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
-                                                                !isAllowedToModerate, "btn btn-default btn-xs", teamMember, data.courseId, data.feedbackSessionName,
-                                                                null, "Moderate Responses");
-                                                        pageContext.setAttribute("moderationButton", moderationButton);
-                                                    %>
-                                                    <r:moderationsButton moderationButton="${moderationButton}" />
-                                                    &nbsp;
-                                                    <div class="display-icon" style="display:inline;">
-                                                        <span class='glyphicon <%=!shouldCollapsed ? "glyphicon-chevron-up" : "glyphicon-chevron-down"%> pull-right'></span>
-                                                    </div>                
-                                                </div>
-                                            </div>
-                                            <div class='panel-collapse collapse in'>
-                                                <div class="panel-body"> 
-                                                    <i>There are no responses given by this user</i> 
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <% 
+                                            boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
+                                                    data.bundle.getSectionFromRoster(teamMember), data.feedbackSessionName,
+                                                    Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                                            InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
+                                                    !isAllowedToModerate, "btn btn-default btn-xs", teamMember, data.courseId, data.feedbackSessionName,
+                                                    null, "Moderate Responses");
+                                            
+                                            String profilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, teamMember).isEmpty()
+                                                                    ? data.getProfilePictureLink(teamMember) : null;
+                                            
+                                            GRQNoResponseRow responseHeader = new GRQNoResponseRow(
+                                                    teamMember, data.bundle.getFullNameFromRoster(teamMember),
+                                                    profilePicture, moderationButton);
+                                            pageContext.setAttribute("responseHeader", responseHeader);
+                                        %>
+                                        <r:grqResponse response="${responseHeader}" isCollapsed="${data.shouldCollapsed}" />
                                     <% 
                                         }
                                         if (groupByTeamEnabled) {
