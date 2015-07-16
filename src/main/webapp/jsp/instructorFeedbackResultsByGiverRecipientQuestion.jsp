@@ -94,8 +94,7 @@
                     int teamIndex = -1;
                     Set<String> teamMembersEmail = new HashSet<String>(); 
                     Set<String> teamMembersWithResponses = new HashSet<String>();
-                %>
-                <%
+                    
                     Map<String, Map<String, List<FeedbackResponseAttributes>>> allResponses = data.bundle.getResponsesSortedByGiver(groupByTeamEnabled);
                     Map<String, FeedbackQuestionAttributes> questions = data.bundle.questions;
 
@@ -213,7 +212,7 @@
                     %>
 
                     <%
-                        if (currentSection == null || newSection == true) {
+                        if (currentSection == null || newSection) {
                     %>
                         <%
                             currentSection = firstResponse.giverSection;
@@ -989,7 +988,7 @@
                                 </div>
                                 <span class="glyphicon pull-right glyphicon-chevron-up"></span>
                             </div>
-                            <div class="panel-collapse collapse in" id="panelBodyCollapse-2" style="height: auto;">
+                            <div class="panel-collapse collapse in">
                                 <div class="panel-body background-color-warning">
                     <%
                         }
@@ -1077,7 +1076,7 @@
                             </div>
                             <span class="glyphicon pull-right glyphicon-chevron-up"></span>
                         </div>
-                        <div class="panel-collapse collapse in" id="panelBodyCollapse-2" style="height: auto;">
+                        <div class="panel-collapse collapse in">
                             <div class="panel-body">
                                 <%
                                     Set<String> teamsFromSection = data.bundle.getTeamsInSectionFromRoster(sectionWithNoResponseReceived);
@@ -1098,7 +1097,7 @@
                                                 </div>
                                                 <span class="glyphicon pull-right glyphicon-chevron-up"></span>
                                             </div>
-                                            <div class="panel-collapse collapse in" id="panelBodyCollapse-2" style="height: auto;">
+                                            <div class="panel-collapse collapse in">
                                                 <div class="panel-body background-color-warning">
                                     <%
                                         }
