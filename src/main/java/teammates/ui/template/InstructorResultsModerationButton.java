@@ -28,6 +28,19 @@ public class InstructorResultsModerationButton {
         
     }
     
+    public InstructorResultsModerationButton(boolean isDisabled, String className, String giverIdentifier,
+                            String courseId, String feedbackSessionName, FeedbackQuestionAttributes question,
+                            String buttonText) {
+       this.isDisabled = isDisabled;
+       this.className = className;
+       this.questionNumber = question != null ? question.questionNumber : -1;
+       this.giverIdentifier = giverIdentifier;
+       this.courseId = courseId;
+       this.feedbackSessionName = feedbackSessionName;
+       this.buttonText = buttonText;
+       
+   }
+    
     public boolean isAllowedToModerate() {
         return isAllowedToModerate;
     }
