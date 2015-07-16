@@ -68,116 +68,20 @@
             <jsp:include page="<%=Const.ViewURIs.INSTRUCTOR_FEEDBACK_RESULTS_TOP%>" />
             <br>
 
+            <%-- use this when the rest is tidied up
+            <c:choose>
+                <c:when test="${not data.bundle.complete}">
+                </c:when>
+                <c:otherwise>
+                </c:otherwise>
+            </c:choose>
+            --%>
             <%
                 if(!showAll) {
             %>
-                <%
-                    if(data.selectedSection.equals("All")){
-                %>
-                    <%
-                        int sectionIndex = 0;
-                        for (String section: data.sections) {
-                    %>
-                        <div class="panel panel-success">
-                            <div class="panel-heading ajax_submit">
-                                <div class="row">
-                                    <div class="col-sm-9 panel-heading-text">
-                                        <strong><%=section%></strong>
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <div class="pull-right">
-                                            <a class="btn btn-success btn-xs" id="collapse-panels-button-section-<%=sectionIndex%>" data-toggle="tooltip" title='Collapse or expand all <%=groupByTeamEnabled == true ? "team" : "student"%> panels. You can also click on the panel heading to toggle each one individually.' style="display:none;">
-                                                Expand <%=groupByTeamEnabled == true ? " Teams" : " Students"%>
-                                            </a>
-                                            &nbsp;
-                                            <div class="display-icon" style="display:inline;">
-                                                <span class="glyphicon glyphicon-chevron-down"></span>
-                                            </div>
-                                        </div>
-                                     </div>
-                                </div>
-
-                                <form style="display:none;" id="seeMore-<%=sectionIndex%>" class="seeMoreForm-<%=sectionIndex%>" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID%>" value="<%=data.bundle.feedbackSession.courseId%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME%>" value="<%=data.bundle.feedbackSession.feedbackSessionName%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYSECTION%>" value="<%=section%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="<%=data.account.googleId%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM%>" value="<%=data.groupByTeam%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="<%=data.sortType%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-<%=sectionIndex%>">
-                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_MAIN_INDEX%>" value="on" id="mainIndex-<%=sectionIndex%>">
-                                </form>
-                            </div>
-                            <div class="panel-collapse collapse">
-                                <div class="panel-body">
-                                
-                                </div>
-                            </div>
-                        </div>
-                    <%
-                        sectionIndex++;
-                        }
-                    %>
-                    <div class="panel panel-success">
-                        <div class="panel-heading ajax_submit">
-                            <div class="row">
-                                <div class="col-sm-9 panel-heading-text">
-                                    <strong>Not in a section</strong>
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="pull-right">
-                                        <a class="btn btn-success btn-xs" id="collapse-panels-button-section-<%=sectionIndex%>" data-toggle="tooltip" title='Collapse or expand all <%=groupByTeamEnabled == true ? "team" : "student"%> panels. You can also click on the panel heading to toggle each one individually.' style="display:none;">
-                                            Expand <%=groupByTeamEnabled == true ? " Teams" : " Students"%>
-                                        </a>
-                                        &nbsp;
-                                        <div class="display-icon" style="display:inline;">
-                                            <span class="glyphicon glyphicon-chevron-down"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <form style="display:none;" id="seeMore-<%=sectionIndex%>" class="seeMoreForm-<%=sectionIndex%>" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID%>" value="<%=data.bundle.feedbackSession.courseId%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME%>" value="<%=data.bundle.feedbackSession.feedbackSessionName%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYSECTION%>" value="None">
-                                <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="<%=data.account.googleId%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM%>" value="<%=data.groupByTeam%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="<%=data.sortType%>">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on">
-                                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_MAIN_INDEX%>" value="on" id="mainIndex-<%=sectionIndex%>">
-                            </form>
-                        </div>
-                        <div class="panel-collapse collapse">
-                            <div class="panel-body">
-
-                            </div>
-                        </div>
-                    </div>
-                <%
-                    } else {
-                %>
-                    <div class="panel panel-success">
-                        <div class="panel-heading">
-                            <div class="row">
-                                <div class="col-sm-9 panel-heading-text">
-                                    <strong><%=data.selectedSection%></strong>                   
-                                </div>
-                                <div class="col-sm-3">
-                                    <div class="pull-right">
-                                        <span class="glyphicon glyphicon-chevron-up"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-collapse collapse in">
-                            <div class="panel-body" id="sectionBody-0">
-                                <%=InstructorFeedbackResultsPageData.EXCEEDING_RESPONSES_ERROR_MESSAGE%>
-                            </div>
-                        </div>
-                    </div>
-                <%
-                    }
-                %>
+                <c:set var="EXCEEDING_RESPONSES_ERROR_MESSAGE"><%=InstructorFeedbackResultsPageData.EXCEEDING_RESPONSES_ERROR_MESSAGE%></c:set>
+                <r:ajaxSectionPanel data="${data}"
+                                    EXCEEDING_RESPONSES_ERROR_MESSAGE="${EXCEEDING_RESPONSES_ERROR_MESSAGE}" />
             <%
                 } else {
             %>
@@ -487,11 +391,11 @@
                                 %>
                                     <%
                                         FeedbackQuestionAttributes question = questions.get(singleResponse.feedbackQuestionId);
-                                        FeedbackQuestionDetails questionDetails = question.getQuestionDetails();
                                     %>
                                     <div class="panel panel-info">
                                         <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
                                         <div class="panel-heading">Question <%=question.questionNumber%>: <span class="text-preserve-space"><%
+                                                FeedbackQuestionDetails questionDetails = question.getQuestionDetails();
                                                 out.print(InstructorFeedbackResultsPageData.sanitizeForHtml(questionDetails.questionText));
                                                 out.print(questionDetails.getQuestionAdditionalInfoHtml(question.questionNumber, "giver-"+giverIndex+"-recipient-"+recipientIndex));
                                         %></span></div>
