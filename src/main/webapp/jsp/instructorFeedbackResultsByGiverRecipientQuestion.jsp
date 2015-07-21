@@ -18,8 +18,10 @@
 <%@ page import="teammates.common.datatransfer.FeedbackQuestionDetails"%>
 <%@ page import="teammates.common.datatransfer.FeedbackQuestionAttributes"%>
 <%@ page import="teammates.ui.template.InstructorResultsModerationButton" %>
+<%@ page import="teammates.ui.template.InstructorResultsGRQResponse" %>
 <%@ page import="teammates.ui.template.GRQNoResponseRow" %>
 <%@ page import="teammates.ui.template.FeedbackResponseComment" %>
+<%@ page import="javax.servlet.jsp.jstl.core.LoopTagStatus" %>
 <%
     InstructorFeedbackResultsPageData data = (InstructorFeedbackResultsPageData) request.getAttribute("data");
     FieldValidator validator = new FieldValidator();
@@ -115,6 +117,7 @@
                 %>
                     <%
                         giverIndex++;
+                        pageContext.setAttribute("giverIndex", giverIndex);
 
                         Map<String, List<FeedbackResponseAttributes> > giverData = responsesFromGiver.getValue();
                         Object[] giverDataArray =  giverData.keySet().toArray();
@@ -330,6 +333,88 @@
                             String recipientProfilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, recipientEmail).isEmpty()
                                     ? data.getProfilePictureLink(recipientEmail) : null;
                             pageContext.setAttribute("recipientProfilePicture", recipientProfilePicture);
+                            
+                            List<InstructorResultsGRQResponse> responses = new ArrayList<InstructorResultsGRQResponse>();
+                            
+                            LoopTagStatus recipientLoopTag = (LoopTagStatus) pageContext.getAttribute("recipientIndex");
+                            int recipientIndex = recipientLoopTag.getCount();
+                            
+                            for (FeedbackResponseAttributes singleResponse : responsesFromGiverToRecipient.getValue()) {
+                            	FeedbackQuestionAttributes question = questions.get(singleResponse.feedbackQuestionId);
+                                FeedbackQuestionDetails questionDetails = question.getQuestionDetails();
+                                String questionHtml = InstructorFeedbackResultsPageData.sanitizeForHtml(questionDetails.questionText)
+                                        + questionDetails.getQuestionAdditionalInfoHtml(question.questionNumber,
+                                                "giver-" + giverIndex + "-recipient-" + recipientIndex);
+                                String answerHtml = data.bundle.getResponseAnswerHtml(singleResponse, question);
+                                boolean allowedToSubmitSessionInSections =
+                                        data.instructor.isAllowedForPrivilege(
+                                                singleResponse.giverSection, singleResponse.feedbackSessionName,
+                                                Const.ParamsNames.INSTRUCTOR_PERMISSION_SUBMIT_SESSION_IN_SECTIONS)
+                                        && data.instructor.isAllowedForPrivilege(
+                                                  singleResponse.recipientSection, singleResponse.feedbackSessionName,
+                                                  Const.ParamsNames.INSTRUCTOR_PERMISSION_SUBMIT_SESSION_IN_SECTIONS);
+                                
+                                List<FeedbackResponseComment> comments = new ArrayList<FeedbackResponseComment>();
+                                
+                                List<FeedbackResponseCommentAttributes> frcAttributesList = data.bundle.responseComments.get(singleResponse.getId());
+                                if (frcAttributesList != null) {
+                                    for (FeedbackResponseCommentAttributes frcAttributes : frcAttributesList) {
+                                        boolean isInstructorGiver = data.instructor.email.equals(frcAttributes.giverEmail);
+                                        boolean isInstructorWithPrivilegesToModify =
+                                                data.instructor.isAllowedForPrivilege(
+                                                        singleResponse.giverSection, singleResponse.feedbackSessionName,
+                                                        Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS)
+                                                && data.instructor.isAllowedForPrivilege(
+                                                           singleResponse.recipientSection, singleResponse.feedbackSessionName,
+                                                           Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                                        boolean isInstructorAllowedToModify = isInstructorGiver || isInstructorWithPrivilegesToModify;
+                                        
+                                        boolean isResponseVisibleToRecipient =
+                                                question.recipientType != FeedbackParticipantType.SELF
+                                                && question.recipientType != FeedbackParticipantType.NONE
+                                                && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER);
+                                        
+                                        boolean isResponseVisibleToGiverTeam =
+                                                question.giverType != FeedbackParticipantType.INSTRUCTORS
+                                                && question.giverType != FeedbackParticipantType.SELF
+                                                && question.isResponseVisibleTo(FeedbackParticipantType.OWN_TEAM_MEMBERS);
+                                        
+                                        boolean isResponseVisibleToRecipientTeam =
+                                                question.recipientType != FeedbackParticipantType.INSTRUCTORS
+                                                && question.recipientType != FeedbackParticipantType.SELF
+                                                && question.recipientType != FeedbackParticipantType.NONE
+                                                && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER_TEAM_MEMBERS);
+                                        
+                                        boolean isResponseVisibleToStudents =
+                                                question.isResponseVisibleTo(FeedbackParticipantType.STUDENTS);
+                                        
+                                        boolean isResponseVisibleToInstructors =
+                                                question.isResponseVisibleTo(FeedbackParticipantType.INSTRUCTORS);
+                                    
+                                        FeedbackResponseComment frc = new FeedbackResponseComment(frcAttributes, frcAttributes.giverEmail,
+                                                responsesFromGiver.getKey(), responsesFromGiverToRecipient.getKey(),
+                                                data.getResponseCommentVisibilityString(frcAttributes, question),
+                                                data.getResponseCommentGiverNameVisibilityString(frcAttributes, question),
+                                                isResponseVisibleToRecipient, isResponseVisibleToGiverTeam, isResponseVisibleToRecipientTeam,
+                                                isResponseVisibleToStudents, isResponseVisibleToInstructors,
+                                                true, isInstructorAllowedToModify, isInstructorAllowedToModify);
+                                    
+                                        comments.add(frc);
+                                    }
+                                }
+                                
+                                String responseCommentVisibility = data.getResponseCommentVisibilityString(question);
+                                String responseCommentGiverNameVisibility = data.getResponseCommentGiverNameVisibilityString(question);
+                                
+                                InstructorResultsGRQResponse grqResponse = new InstructorResultsGRQResponse(
+                                        question.getId(), singleResponse.getId(),
+                                        question.questionNumber, questionHtml, answerHtml, allowedToSubmitSessionInSections,
+                                        comments, responseCommentVisibility, responseCommentGiverNameVisibility);
+                                grqResponse.setQuestion(question); // to be removed
+                                responses.add(grqResponse);
+                            }
+                            
+                            pageContext.setAttribute("responsesFromGiverToRecipient", responses);
                         %>
                         <c:set var="isFirstResponse" value="${recipientIndex.index == 0}" />
                         <div class="row<c:if test="${not isFirstResponse}"> border-top-gray</c:if>">
@@ -364,106 +449,37 @@
                                 </div>
                             </div>
                             <div class="col-md-10">
-                                <%
-                                    Integer recipientIndex = (Integer) pageContext.getAttribute("recipientIndex.count");
-                                    pageContext.setAttribute("giverIndex", giverIndex);
-                                %>
-                                <c:forEach items="${responses.value}" var="response" varStatus="questionIndex">
-                                    <%
-                                        FeedbackResponseAttributes singleResponse = (FeedbackResponseAttributes) pageContext.getAttribute("response");
-                                        
-                                        FeedbackQuestionAttributes question = questions.get(singleResponse.feedbackQuestionId);
-                                        pageContext.setAttribute("questionNumber", question.questionNumber);
-                                        FeedbackQuestionDetails questionDetails = question.getQuestionDetails();
-                                        pageContext.setAttribute("questionHtml",
-                                                InstructorFeedbackResultsPageData.sanitizeForHtml(questionDetails.questionText)
-                                                + questionDetails.getQuestionAdditionalInfoHtml(question.questionNumber, "giver-"+giverIndex+"-recipient-"+recipientIndex));
-                                        pageContext.setAttribute("answerHtml", data.bundle.getResponseAnswerHtml(singleResponse, question));
-                                        
-                                        boolean allowedToSubmitSessionInSections =
-                                                data.instructor.isAllowedForPrivilege(
-                                                        singleResponse.giverSection, singleResponse.feedbackSessionName,
-                                                        Const.ParamsNames.INSTRUCTOR_PERMISSION_SUBMIT_SESSION_IN_SECTIONS)
-                                                && data.instructor.isAllowedForPrivilege(
-                                                          singleResponse.recipientSection, singleResponse.feedbackSessionName,
-                                                          Const.ParamsNames.INSTRUCTOR_PERMISSION_SUBMIT_SESSION_IN_SECTIONS);
-                                        pageContext.setAttribute("allowedToSubmitSessionInSections", allowedToSubmitSessionInSections);
-                                    %>
+                                <c:forEach items="${responsesFromGiverToRecipient}" var="response" varStatus="questionIndex">
                                     <div class="panel panel-info">
                                         <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
                                         <div class="panel-heading">
-                                            Question ${questionNumber}:
-                                            <span class="text-preserve-space">${questionHtml}</span>
+                                            Question ${response.questionNumber}:
+                                            <span class="text-preserve-space">${response.questionHtml}</span>
                                         </div>
                                         <div class="panel-body">
                                             <div style="clear:both; overflow: hidden">
                                                 <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
-                                                <div class="pull-left text-preserve-space">${answerHtml}</div>
+                                                <div class="pull-left text-preserve-space">${response.answerHtml}</div>
                                                 <button type="button" class="btn btn-default btn-xs icon-button pull-right" id="button_add_comment" 
-                                                    onclick="showResponseCommentAddForm(${recipientIndex},${giverIndex},${questionIndex.count})"
+                                                    onclick="showResponseCommentAddForm(${recipientIndex.count},${giverIndex},${questionIndex.count})"
                                                     data-toggle="tooltip" data-placement="top" title="<%=Const.Tooltips.COMMENT_ADD%>"
-                                                    <c:if test="${not allowedToSubmitSessionInSections}">disabled="disabled"</c:if>>
+                                                    <c:if test="${not response.allowedToSubmitSessionInSections}">disabled="disabled"</c:if>>
                                                     <span class="glyphicon glyphicon-comment glyphicon-primary"></span>
                                                 </button>
                                             </div>
-                                            <%
-                                                List<FeedbackResponseCommentAttributes> responseComments = data.bundle.responseComments.get(singleResponse.getId());
-                                                pageContext.setAttribute("responseComments", responseComments);
-                                            %>
-                                            <ul class="list-group" id="responseCommentTable-${recipientIndex}-${giverIndex}-${questionIndex.count}"
-                                                style="${empty responseComments ? 'display:none' : 'margin-top:15px;'}">
-                                                <c:forEach items="${responseComments}" var="frcAttributes" varStatus="i">
-                                                    <%
-                                                        FeedbackResponseCommentAttributes frcAttributes = (FeedbackResponseCommentAttributes) pageContext.getAttribute("frcAttributes");    
-                                                    
-                                                        boolean isInstructorGiver = data.instructor.email.equals(frcAttributes.giverEmail);
-                                                        boolean isInstructorWithPrivilegesToModify =
-                                                                data.instructor.isAllowedForPrivilege(
-                                                                        singleResponse.giverSection, singleResponse.feedbackSessionName,
-                                                                        Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS)
-                                                                && data.instructor.isAllowedForPrivilege(
-                                                                           singleResponse.recipientSection, singleResponse.feedbackSessionName,
-                                                                           Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                                                        boolean isInstructorAllowedToModify = isInstructorGiver || isInstructorWithPrivilegesToModify;
-                                                        
-                                                        boolean isResponseVisibleToRecipient =
-                                                                question.recipientType != FeedbackParticipantType.SELF
-                                                                && question.recipientType != FeedbackParticipantType.NONE
-                                                                && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER);
-                                                        
-                                                        boolean isResponseVisibleToGiverTeam =
-                                                        		question.giverType != FeedbackParticipantType.INSTRUCTORS
-                                                                && question.giverType != FeedbackParticipantType.SELF
-                                                                && question.isResponseVisibleTo(FeedbackParticipantType.OWN_TEAM_MEMBERS);
-                                                        
-                                                        boolean isResponseVisibleToRecipientTeam =
-                                                        		question.recipientType != FeedbackParticipantType.INSTRUCTORS
-                                                                && question.recipientType != FeedbackParticipantType.SELF
-                                                                && question.recipientType != FeedbackParticipantType.NONE
-                                                                && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER_TEAM_MEMBERS);
-                                                        
-                                                        boolean isResponseVisibleToStudents =
-                                                        		question.isResponseVisibleTo(FeedbackParticipantType.STUDENTS);
-                                                        
-                                                        boolean isResponseVisibleToInstructors =
-                                                        		question.isResponseVisibleTo(FeedbackParticipantType.INSTRUCTORS);
-                                                    
-                                                        FeedbackResponseComment frc = new FeedbackResponseComment(frcAttributes, frcAttributes.giverEmail,
-                                                                responsesFromGiver.getKey(), responsesFromGiverToRecipient.getKey(),
-                                                                data.getResponseCommentVisibilityString(frcAttributes, question),
-                                                                data.getResponseCommentGiverNameVisibilityString(frcAttributes, question),
-                                                                isResponseVisibleToRecipient, isResponseVisibleToGiverTeam, isResponseVisibleToRecipientTeam,
-                                                                isResponseVisibleToStudents, isResponseVisibleToInstructors,
-                                                                true, isInstructorAllowedToModify, isInstructorAllowedToModify);
-                                                        pageContext.setAttribute("frc", frc);
-                                                    %>
+                                            <ul class="list-group" id="responseCommentTable-${recipientIndex.count}-${giverIndex}-${questionIndex.count}"
+                                                style="${empty response.comments ? 'display:none' : 'margin-top:15px;'}">
+                                                <c:forEach items="${response.comments}" var="frc" varStatus="i">
                                                     <shared:feedbackResponseComment frc="${frc}"
-                                                                                    firstIndex="${recipientIndex}"
+                                                                                    firstIndex="${recipientIndex.count}"
                                                                                     secondIndex="${giverIndex}"
                                                                                     thirdIndex="${questionIndex.count}"
                                                                                     frcIndex="${i.count}" />
                                                 </c:forEach>
-                                                <!-- frComment Add form -->    
+                                                <!-- frComment Add form -->
+                                                <%
+                                                    FeedbackQuestionAttributes question = ((InstructorResultsGRQResponse) pageContext.getAttribute("response")).getQuestion();
+                                                %>
                                                 <li class="list-group-item list-group-item-warning" id="showResponseCommentAddForm-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}" style="display:none;">
                                                     <form class="responseCommentAddForm">
                                                         <div class="form-group">
@@ -650,13 +666,13 @@
                                                         <div class="col-sm-offset-5">
                                                             <a href="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESPONSE_COMMENT_ADD%>" type="button" class="btn btn-primary" id="button_save_comment_for_add-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">Add</a>
                                                             <input type="button" class="btn btn-default" value="Cancel" onclick="hideResponseCommentAddForm(${recipientIndex.count},<%=giverIndex%>,${questionIndex.count})">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID %>" value="<%=singleResponse.courseId %>">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME %>" value="<%=singleResponse.feedbackSessionName %>">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_ID %>" value="<%=singleResponse.feedbackQuestionId %>">                                            
-                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESPONSE_ID %>" value="<%=singleResponse.getId() %>">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="<%=data.account.googleId %>">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.RESPONSE_COMMENTS_SHOWCOMMENTSTO%>" value="<%=data.getResponseCommentVisibilityString(question)%>">
-                                                            <input type="hidden" name="<%=Const.ParamsNames.RESPONSE_COMMENTS_SHOWGIVERTO%>" value="<%=data.getResponseCommentGiverNameVisibilityString(question)%>">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID %>" value="${data.courseId}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME %>" value="${data.feedbackSessionName}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_ID %>" value="${response.questionId}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESPONSE_ID %>" value="${response.responseId}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="${data.account.googleId}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.RESPONSE_COMMENTS_SHOWCOMMENTSTO%>" value="${response.responseCommentVisibility}">
+                                                            <input type="hidden" name="<%=Const.ParamsNames.RESPONSE_COMMENTS_SHOWGIVERTO%>" value="${response.responseCommentGiverNameVisibility}">
                                                         </div>
                                                     </form>
                                                 </li>
