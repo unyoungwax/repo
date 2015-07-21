@@ -316,57 +316,63 @@
                 <div class='panel-collapse collapse <%=shouldCollapsed ? "" : "in"%>'>
                 <div class="panel-body">
                     <%
-                        int recipientIndex = 0;
-                        for (Map.Entry<String, List<FeedbackResponseAttributes>> responsesFromGiverToRecipient : responsesFromGiver.getValue().entrySet()) {
+                        pageContext.setAttribute("responsesFromGiver", responsesFromGiver.getValue().entrySet());
+                        pageContext.setAttribute("giverName", responsesFromGiver.getKey());
+                        String giverProfilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, targetEmail).isEmpty()
+                                ? data.getProfilePictureLink(targetEmail) : null;
+                        pageContext.setAttribute("giverProfilePicture", giverProfilePicture);
                     %>
+                    <c:forEach items="${responsesFromGiver}" var="responses" varStatus="recipientIndex">
                         <%
-                            recipientIndex++;
+                            @SuppressWarnings("unchecked")
+                            Map.Entry<String, List<FeedbackResponseAttributes>> responsesFromGiverToRecipient =
+                                    (Map.Entry<String, List<FeedbackResponseAttributes>>)
+                                            pageContext.getAttribute("responses");
+                            pageContext.setAttribute("recipientName", responsesFromGiverToRecipient.getKey());    
+                            
                             String recipientEmail = responsesFromGiverToRecipient.getValue().get(0).recipientEmail;
+                            String recipientProfilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, recipientEmail).isEmpty()
+                                    ? data.getProfilePictureLink(recipientEmail) : null;
+                            pageContext.setAttribute("recipientProfilePicture", recipientProfilePicture);
                         %>
-                        <div class="row <%=recipientIndex == 1? "": "border-top-gray"%>">
+                        <c:set var="isFirstResponse" value="${recipientIndex.index == 0}" />
+                        <div class="row<c:if test="${not isFirstResponse}"> border-top-gray</c:if>">
                             <div class="col-md-2">
                                 <div class="col-md-12">
                                     To:
-                                    <%
-                                        if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, recipientEmail).isEmpty()) {
-                                    %>
-                                        <div class="middlealign profile-pic-icon-hover inline-block" data-link="<%=data.getProfilePictureLink(recipientEmail)%>">
-                                            <strong><%=responsesFromGiverToRecipient.getKey()%></strong>
-                                            <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                        </div>
-                                    <%
-                                        } else {
-                                    %>
-                                            <strong><%=responsesFromGiverToRecipient.getKey()%></strong>
-                                    <%
-                                        }
-                                    %> 
+                                    <c:choose>
+                                        <c:when test="${empty recipientProfilePicture}">
+                                            <strong>${recipientName}</strong>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="middlealign profile-pic-icon-hover inline-block" data-link="${recipientProfilePicture}">
+                                                <strong>${recipientName}</strong>
+                                                <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                                 <div class="col-md-12 text-muted small"><br>
                                     From:
-                                    <%
-                                        if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, targetEmail).isEmpty()) {
-                                    %>
-                                        <div class="middlealign profile-pic-icon-hover inline-block" data-link="<%=data.getProfilePictureLink(targetEmail)%>">
-                                            <%=responsesFromGiver.getKey()%>
-                                            <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                                        </div>
-                                    <%
-                                        } else {
-                                    %>
-                                            <%=responsesFromGiver.getKey()%>
-                                    <%
-                                        }
-                                    %>
+                                    <c:choose>
+                                        <c:when test="${empty giverProfilePicture}">
+                                            ${giverName}
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="middlealign profile-pic-icon-hover inline-block" data-link="${giverProfilePicture}">
+                                                ${giverName}
+                                                <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
                             <div class="col-md-10">
                                 <%
-                                    pageContext.setAttribute("recipientIndex", recipientIndex);
+                                    Integer recipientIndex = (Integer) pageContext.getAttribute("recipientIndex.count");
                                     pageContext.setAttribute("giverIndex", giverIndex);
-                                    pageContext.setAttribute("responses", responsesFromGiverToRecipient.getValue());
                                 %>
-                                <c:forEach items="${responses}" var="response" varStatus="questionIndex">
+                                <c:forEach items="${responses.value}" var="response" varStatus="questionIndex">
                                     <%
                                         FeedbackResponseAttributes singleResponse = (FeedbackResponseAttributes) pageContext.getAttribute("response");
                                         
@@ -462,7 +468,7 @@
                                                                                     frcIndex="${i.count}" />
                                                 </c:forEach>
                                                 <!-- frComment Add form -->    
-                                                <li class="list-group-item list-group-item-warning" id="showResponseCommentAddForm-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}" style="display:none;">
+                                                <li class="list-group-item list-group-item-warning" id="showResponseCommentAddForm-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}" style="display:none;">
                                                     <form class="responseCommentAddForm">
                                                         <div class="form-group">
                                                             <div class="form-group form-inline">
@@ -473,13 +479,13 @@
                                                                     </p>
                                                                     You may change comment's visibility using the visibility options on the right hand side.
                                                                 </div>
-                                                                <a id="frComment-visibility-options-trigger-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}"
-                                                                    class="btn btn-sm btn-info pull-right" onclick="toggleVisibilityEditForm(<%=recipientIndex%>,<%=giverIndex%>,${questionIndex.count})">
+                                                                <a id="frComment-visibility-options-trigger-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}"
+                                                                    class="btn btn-sm btn-info pull-right" onclick="toggleVisibilityEditForm(${recipientIndex.count},<%=giverIndex%>,${questionIndex.count})">
                                                                     <span class="glyphicon glyphicon-eye-close"></span>
                                                                     Show Visibility Options
                                                                 </a>
                                                             </div>
-                                                            <div id="visibility-options-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}" class="panel panel-default"
+                                                            <div id="visibility-options-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}" class="panel panel-default"
                                                                 style="display: none;">
                                                                 <div class="panel-heading">Visibility Options</div>
                                                                 <table class="table text-center" style="color:#000;"
@@ -490,7 +496,7 @@
                                                                             <th class="text-center">Can see your comment</th>
                                                                             <th class="text-center">Can see your name</th>
                                                                         </tr>
-                                                                        <tr id="response-giver-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                        <tr id="response-giver-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                             <td class="text-left">
                                                                                 <div data-toggle="tooltip"
                                                                                     data-placement="top" title=""
@@ -514,7 +520,7 @@
                                                                                 && question.recipientType != FeedbackParticipantType.NONE
                                                                                 && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER)) {
                                                                         %>
-                                                                            <tr id="response-recipient-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                            <tr id="response-recipient-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                                 <td class="text-left">
                                                                                     <div data-toggle="tooltip"
                                                                                         data-placement="top" title=""
@@ -541,7 +547,7 @@
                                                                                 && question.giverType != FeedbackParticipantType.SELF
                                                                                 && question.isResponseVisibleTo(FeedbackParticipantType.OWN_TEAM_MEMBERS)) {
                                                                         %>
-                                                                            <tr id="response-giver-team-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                            <tr id="response-giver-team-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                                 <td class="text-left">
                                                                                     <div data-toggle="tooltip"
                                                                                         data-placement="top" title=""
@@ -569,7 +575,7 @@
                                                                                 && question.recipientType != FeedbackParticipantType.NONE
                                                                                 && question.isResponseVisibleTo(FeedbackParticipantType.RECEIVER_TEAM_MEMBERS)) {
                                                                         %>
-                                                                            <tr id="response-recipient-team-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                            <tr id="response-recipient-team-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                                 <td class="text-left">
                                                                                     <div data-toggle="tooltip"
                                                                                         data-placement="top" title=""
@@ -595,7 +601,7 @@
                                                                         <%
                                                                             if (question.isResponseVisibleTo(FeedbackParticipantType.STUDENTS)) {
                                                                         %>
-                                                                            <tr id="response-students-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                            <tr id="response-students-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                                 <td class="text-left">
                                                                                     <div data-toggle="tooltip"
                                                                                         data-placement="top" title=""
@@ -619,7 +625,7 @@
                                                                         <%
                                                                             if (question.isResponseVisibleTo(FeedbackParticipantType.INSTRUCTORS)) {
                                                                         %>
-                                                                            <tr id="response-instructors-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">
+                                                                            <tr id="response-instructors-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">
                                                                                 <td class="text-left">
                                                                                     <div data-toggle="tooltip"
                                                                                         data-placement="top" title=""
@@ -643,11 +649,11 @@
                                                                     </tbody>
                                                                 </table>
                                                             </div>
-                                                            <textarea class="form-control" rows="3" placeholder="Your comment about this response" name="<%=Const.ParamsNames.FEEDBACK_RESPONSE_COMMENT_TEXT%>" id="responseCommentAddForm-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}"></textarea>
+                                                            <textarea class="form-control" rows="3" placeholder="Your comment about this response" name="<%=Const.ParamsNames.FEEDBACK_RESPONSE_COMMENT_TEXT%>" id="responseCommentAddForm-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}"></textarea>
                                                         </div>
                                                         <div class="col-sm-offset-5">
-                                                            <a href="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESPONSE_COMMENT_ADD%>" type="button" class="btn btn-primary" id="button_save_comment_for_add-<%=recipientIndex%>-<%=giverIndex%>-${questionIndex.count}">Add</a>
-                                                            <input type="button" class="btn btn-default" value="Cancel" onclick="hideResponseCommentAddForm(<%=recipientIndex%>,<%=giverIndex%>,${questionIndex.count})">
+                                                            <a href="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESPONSE_COMMENT_ADD%>" type="button" class="btn btn-primary" id="button_save_comment_for_add-${recipientIndex.count}-<%=giverIndex%>-${questionIndex.count}">Add</a>
+                                                            <input type="button" class="btn btn-default" value="Cancel" onclick="hideResponseCommentAddForm(${recipientIndex.count},<%=giverIndex%>,${questionIndex.count})">
                                                             <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID %>" value="<%=singleResponse.courseId %>">
                                                             <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME %>" value="<%=singleResponse.feedbackSessionName %>">
                                                             <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_ID %>" value="<%=singleResponse.feedbackQuestionId %>">                                            
@@ -662,18 +668,12 @@
                                         </div>
                                     </div>
                                 </c:forEach>
-                                <%
-                                    if (responsesFromGiverToRecipient.getValue().isEmpty()) {
-                                %>
+                                <c:if test="${empty responses}">
                                     <div class="col-sm-12" style="color:red;">No feedback from this user.</div>
-                                <%
-                                    }
-                                %>
+                                </c:if>
                             </div>
                         </div>
-                    <%
-                        }
-                    %>
+                    </c:forEach>
                 </div></div></div>
                 <%
                     }
