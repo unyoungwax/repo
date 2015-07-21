@@ -122,8 +122,6 @@
                         // giverEmail can be in the format "[student@example.com]'s Team"
                         String targetEmail = firstResponse.giverEmail.replace(Const.TEAM_OF_EMAIL_OWNER,"");
                         boolean isGiverVisible = data.bundle.isGiverVisible(firstResponse);
-                        String targetEmailDisplay = firstResponse.giverEmail;
-                        String mailtoStyleAttr = (targetEmailDisplay.contains("@@")) ? "style=\"display:none;\"" : "";
                     %>
                     <%
                         // if change in currentTeam
@@ -268,35 +266,39 @@
                         }
                     %>
 
+                    <%
+                        teamMembersWithResponses.add(targetEmail);
+                        
+                        String giverEmail = firstResponse.giverEmail;
+                        pageContext.setAttribute("giverEmail", giverEmail);
+                        pageContext.setAttribute("giverName", responsesFromGiver.getKey());
+                        String giverProfilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, targetEmail).isEmpty()
+                                ? data.getProfilePictureLink(targetEmail) : null;
+                        pageContext.setAttribute("giverProfilePicture", giverProfilePicture);
+                        
+                        boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
+                                data.bundle.getSectionFromRoster(targetEmail), data.feedbackSessionName,
+                                Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
+                        pageContext.setAttribute("isGiverVisibleToCurrentUser", isGiverVisible
+                                && data.bundle.isParticipantIdentifierStudent(targetEmail));
+                        pageContext.setAttribute("isGiverAnonymous", giverEmail.contains("@@"));
+                        pageContext.setAttribute("class", "link-in-dark-bg");
+                    %>
+                            
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    From: 
-                    <%
-                       if (validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, targetEmail).isEmpty()) {
-                    %>
-                        <div class="middlealign profile-pic-icon-hover inline panel-heading-text" data-link="<%=data.getProfilePictureLink(targetEmail)%>">
-                            <strong><%=responsesFromGiver.getKey()%></strong>
+                    From:
+                    <div class="inline panel-heading-text<c:if test="${not empty giverProfilePicture}"> middlealign profile-pic-icon-hover" data-link="${giverProfilePicture}</c:if>">
+                        <strong>${giverName}</strong>
+                        <c:if test="${not empty giverProfilePicture}">
                             <img src="" alt="No Image Given" class="hidden profile-pic-icon-hidden">
-                            <a class="link-in-dark-bg" href="mailTo:<%=targetEmail%> " <%=mailtoStyleAttr%>>[<%=targetEmailDisplay%>]</a>
-                        </div>
-                    <%
-                        } else {
-                    %>
-                        <div class="inline panel-heading-text">
-                            <strong><%=responsesFromGiver.getKey()%></strong>
-                            <a class="link-in-dark-bg" href="mailTo:<%=targetEmail%> " <%=mailtoStyleAttr%>>[<%=targetEmailDisplay%>]</a>
-                        </div>
-                    <%
-                        }
-                        teamMembersWithResponses.add(targetEmail);
-                    %>
+                        </c:if>
+                        <c:if test="${not isGiverAnonymous}">
+                            <a href="mailTo:${giverEmail}"<c:if test="${not empty class}"> class="${class}"</c:if>>[${giverEmail}]</a>
+                        </c:if>
+                    </div>
                     <div class="pull-right">
-                        <% 
-                            boolean isAllowedToModerate = data.instructor.isAllowedForPrivilege(
-                                    data.bundle.getSectionFromRoster(targetEmail), data.feedbackSessionName,
-                                    Const.ParamsNames.INSTRUCTOR_PERMISSION_MODIFY_SESSION_COMMENT_IN_SECTIONS);
-                            if (isGiverVisible && data.bundle.isParticipantIdentifierStudent(targetEmail)) { 
-                        %>
+                        <c:if test="${isGiverVisibleToCurrentUser}">
                             <%
                                 InstructorResultsModerationButton moderationButton = new InstructorResultsModerationButton(
                                         !isAllowedToModerate, "btn btn-primary btn-xs", targetEmail, data.courseId, data.feedbackSessionName,
@@ -304,23 +306,17 @@
                                 pageContext.setAttribute("moderationButton", moderationButton);
                             %>
                             <r:moderationsButton moderationButton="${moderationButton}" />
-                        <%
-                            }
-                        %>
-                        &nbsp;
+                            &nbsp;
+                        </c:if>
                         <div class="display-icon" style="display:inline;">
-                            <span class='glyphicon <%=!shouldCollapsed ? "glyphicon-chevron-up" : "glyphicon-chevron-down"%> pull-right'></span>
+                            <span class="glyphicon pull-right${data.shouldCollapsed ? ' glyphicon-chevron-down' : ' glyphicon-chevron-up'}"></span>
                         </div>
                     </div>
                 </div>
-                <div class='panel-collapse collapse <%=shouldCollapsed ? "" : "in"%>'>
+                <div class="panel-collapse collapse<c:if test="${not data.shouldCollapsed}"> in</c:if>">
                 <div class="panel-body">
                     <%
                         pageContext.setAttribute("responsesFromGiver", responsesFromGiver.getValue().entrySet());
-                        pageContext.setAttribute("giverName", responsesFromGiver.getKey());
-                        String giverProfilePicture = validator.getInvalidityInfo(FieldValidator.FieldType.EMAIL, targetEmail).isEmpty()
-                                ? data.getProfilePictureLink(targetEmail) : null;
-                        pageContext.setAttribute("giverProfilePicture", giverProfilePicture);
                     %>
                     <c:forEach items="${responsesFromGiver}" var="responses" varStatus="recipientIndex">
                         <%
