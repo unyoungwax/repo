@@ -45,14 +45,7 @@
     </div>
     <div <c:if test="${questionPanel.collapsible}">class="${questionPanel.responsesBodyClass}"</c:if>>
         <div class="panel-body padding-0" <c:if test="${questionIndex != null}">id="questionBody-${questionIndex}"</c:if>>
-            
-            <c:if test="${!questionPanel.questionHasResponses}">
-                <div class="col-sm-12">
-                    <i class="text-muted">There are no responses for this question.</i>
-                </div>
-            </c:if>
-            
-            <c:if test="${isShowingAll && questionPanel.questionHasResponses}">
+            <c:if test="${isShowingAll}">
                 <div class="resultStatistics">
                     ${questionPanel.questionStatisticsTable}
                 </div>
