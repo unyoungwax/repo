@@ -16,6 +16,7 @@ import teammates.common.util.Const;
 public class AjaxResult extends ActionResult {
 
     public PageData data;
+    public boolean isClearingStatusMessage = true;
     
     public AjaxResult(String destination, 
                       AccountAttributes account, 
@@ -35,8 +36,10 @@ public class AjaxResult extends ActionResult {
     @Override
     public void send(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         
-        req.setAttribute(Const.ParamsNames.ERROR, "" + isError);        
-        clearStatusMessageForRequest(req);
+        req.setAttribute(Const.ParamsNames.ERROR, "" + isError);    
+        if (isClearingStatusMessage) {
+            clearStatusMessageForRequest(req);
+        }
         
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");

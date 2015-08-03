@@ -105,7 +105,10 @@ public class InstructorFeedbackEditCopyAction extends Action {
             // so that the instructor can see the new feedback sessions
             data = new InstructorFeedbackEditCopyData(account, new Url(getRedirectUrl(currentPage)),
                                                       false, "");
-            return createAjaxResult(data);
+            AjaxResult result = createAjaxResult(data);
+            result.isClearingStatusMessage = false;
+            
+            return result;
             
         } catch (EntityAlreadyExistsException e) {
             // If conflicts are checked above, this will only occur via race condition
