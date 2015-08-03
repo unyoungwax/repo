@@ -103,7 +103,7 @@ public class InstructorFeedbackEditCopyAction extends Action {
 
             // Go to sessions page after copying,
             // so that the instructor can see the new feedback sessions
-            data = new InstructorFeedbackEditCopyData(account, new Url(getRedirectUrl(currentPage)),
+            data = new InstructorFeedbackEditCopyData(account, new Url(Const.ActionURIs.INSTRUCTOR_FEEDBACKS_PAGE),
                                                       false, "");
             AjaxResult result = createAjaxResult(data);
             result.isClearingStatusMessage = false;
@@ -155,14 +155,4 @@ public class InstructorFeedbackEditCopyAction extends Action {
         return redirectResult;
     }
     
-    private String getRedirectUrl(String currentPage) {
-        if (currentPage.contains(Const.PageNames.INSTRUCTOR_HOME_PAGE)) {
-            return Const.ActionURIs.INSTRUCTOR_HOME_PAGE;
-        } else if (currentPage.contains(Const.PageNames.INSTRUCTOR_FEEDBACKS_PAGE)
-                      || currentPage.contains(Const.PageNames.INSTRUCTOR_FEEDBACK_COPY)) {
-            return Const.ActionURIs.INSTRUCTOR_FEEDBACKS_PAGE;
-        } else {
-            return Const.ActionURIs.INSTRUCTOR_FEEDBACK_EDIT_PAGE;
-        }
-    }
 }
