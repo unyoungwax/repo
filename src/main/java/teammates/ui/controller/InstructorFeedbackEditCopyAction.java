@@ -12,10 +12,13 @@ import teammates.common.exception.InvalidParametersException;
 import teammates.common.util.Assumption;
 import teammates.common.util.Const;
 import teammates.common.util.StringHelper;
+import teammates.common.util.Url;
 import teammates.logic.api.GateKeeper;
 
 public class InstructorFeedbackEditCopyAction extends Action {
 
+    InstructorFeedbackEditCopyData data;
+    
     @Override
     protected ActionResult execute() throws EntityDoesNotExistException {        
         String newFeedbackSessionName = getRequestParamValue(Const.ParamsNames.COPIED_FEEDBACK_SESSION_NAME);
@@ -30,7 +33,7 @@ public class InstructorFeedbackEditCopyAction extends Action {
         String currentPage = getRequestParamValue(Const.ParamsNames.CURRENT_PAGE);
         
         if (coursesIdToCopyTo == null || coursesIdToCopyTo.length == 0) {
-            return createRedirectWithErrorMsg(
+            return createAjaxResultWithErrorMessage(
                     originalFeedbackSessionName,
                     originalCourseId,
                     Const.StatusMessages.FEEDBACK_SESSION_COPY_NONESELECTED,
@@ -63,9 +66,8 @@ public class InstructorFeedbackEditCopyAction extends Action {
                                                    newFeedbackSessionName,
                                                    commaSeparatedListOfCourses);
                 
-                return createRedirectWithErrorMsg(originalFeedbackSessionName,
-                                                            originalCourseId,
-                                                            errorToUser, currentPage);
+                return createAjaxResultWithErrorMessage(originalFeedbackSessionName, originalCourseId,
+                                                      errorToUser, currentPage);
             }
             
             FeedbackSessionAttributes fs = null;
@@ -101,15 +103,18 @@ public class InstructorFeedbackEditCopyAction extends Action {
 
             // Go to sessions page after copying,
             // so that the instructor can see the new feedback sessions
-            return createRedirectResult(Const.ActionURIs.INSTRUCTOR_FEEDBACKS_PAGE);
+            data = new InstructorFeedbackEditCopyData(account, new Url(getRedirectUrl(currentPage)),
+                                                      false, "");
+            return createAjaxResult(data);
             
         } catch (EntityAlreadyExistsException e) {
             // If conflicts are checked above, this will only occur via race condition
-            setStatusForException(e, Const.StatusMessages.FEEDBACK_SESSION_EXISTS);
-            return createRedirectWithError(originalFeedbackSessionName, originalCourseId, currentPage);
+            
+            return createAjaxResultWithErrorMessage(originalFeedbackSessionName, originalCourseId, Const.StatusMessages.FEEDBACK_SESSION_EXISTS, 
+                                                    currentPage);
         } catch (InvalidParametersException e) {
-            setStatusForException(e);
-            return createRedirectWithError(originalFeedbackSessionName, originalCourseId, currentPage);
+            return createAjaxResultWithErrorMessage(originalFeedbackSessionName, originalCourseId, e.getMessage(),
+                                                    currentPage);
         }
         
     }
@@ -136,22 +141,15 @@ public class InstructorFeedbackEditCopyAction extends Action {
         return courses;
     }    
     
-    private RedirectResult createRedirectWithError(String feedbackSessionName, String courseId, String currentPage) {
-        isError = true;      
-        String redirectUrl = getRedirectUrl(currentPage);
-
-        RedirectResult redirectResult = createRedirectResult(redirectUrl);
-        redirectResult.responseParams.put(Const.ParamsNames.COURSE_ID, courseId);
-        redirectResult.responseParams.put(Const.ParamsNames.FEEDBACK_SESSION_NAME, feedbackSessionName);
-        redirectResult.responseParams.put(Const.ParamsNames.USER_ID, account.googleId);
+    
+    private AjaxResult createAjaxResultWithErrorMessage(
+            String feedbackSessionName, String courseId, String errorToUser, String currentPage) {
+        isError = true;
+        
+        data = new InstructorFeedbackEditCopyData(account, null, true, errorToUser);
+        AjaxResult redirectResult = createAjaxResult(data);
         
         return redirectResult;
-    }
-    
-    private RedirectResult createRedirectWithErrorMsg(
-            String feedbackSessionName, String courseId, String errorToUser, String currentPage) {
-        statusToUser.add(errorToUser);
-        return createRedirectWithError(feedbackSessionName, courseId, currentPage);
     }
     
     private String getRedirectUrl(String currentPage) {
