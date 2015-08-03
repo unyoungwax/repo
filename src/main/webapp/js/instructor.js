@@ -150,6 +150,43 @@ function setupFsCopyModal() {
             }
         });
     });
+    
+    $('#form_copy_list').submit(fsCopyModalFormSubmitHandler);
+}
+
+/**
+ * Event handler for the copying feedback session modal's form.
+ * For submitting the form by ajax.
+ * 
+ * this should be bound to the form element
+ */
+function fsCopyModalFormSubmitHandler(e) {
+    e.preventDefault();
+    
+    $.ajax({
+        type: 'POST',
+        url: $(this).prop('action'),
+        data: $(this).serialize(),
+        beforeSend: function() {
+            $('#feedback-copy-modal-status').removeClass("alert alert-danger");
+            $('#feedback-copy-modal-status').html("<img class='margin-center-horizontal' src='/images/ajax-loader.gif'/>");
+        },
+        error: function() {
+            $('#feedback-copy-modal-status').addClass("alert alert-danger");
+            $('#feedback-copy-modal-status').text('Error submitting. ' + 
+                    'Please close the dialog window and try again.');
+        },
+        success: function(data) {
+            if (!data.isError) {
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                }
+            } else {
+                $('#feedback-copy-modal-status').addClass("alert alert-danger");
+                $('#feedback-copy-modal-status').text(data.errorMessage);
+            }
+        }
+    });
 }
 
 // Student Profile Picture
