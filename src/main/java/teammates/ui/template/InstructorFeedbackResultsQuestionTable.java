@@ -33,6 +33,8 @@ public class InstructorFeedbackResultsQuestionTable {
     
     private boolean isCollapsible;
     private boolean isBoldQuestionNumber;
+    
+    private boolean isShowLoadMissingResponsesButton;
 
     private List<ElementTag> columns;
     private Map<String, Boolean> isColumnSortable;
@@ -150,6 +152,15 @@ public class InstructorFeedbackResultsQuestionTable {
 
     public void setBoldQuestionNumber(boolean isBoldQuestionNumber) {
         this.isBoldQuestionNumber = isBoldQuestionNumber;
+    }
+    
+
+    public boolean isShowLoadMissingResponsesButton() {
+        return isShowLoadMissingResponsesButton;
+    }
+
+    public void setShowLoadMissingResponsesButton(boolean isShowLoadMissingResponsesButton) {
+        this.isShowLoadMissingResponsesButton = isShowLoadMissingResponsesButton;
     }
 
     public static void sortByQuestionNumber(List<InstructorFeedbackResultsQuestionTable> questionTables) {

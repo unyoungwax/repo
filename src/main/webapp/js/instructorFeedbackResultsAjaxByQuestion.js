@@ -18,7 +18,7 @@ $(document).ready(function() {
             cache: false,
             url: $(formObject[0]).attr('action') + '?' + formData,
             beforeSend: function() {
-                displayIcon.html('<img height="25" width="25" src="/images/ajax-preload.gif">')
+                displayIcon.html('<img height="25" width="25" src="/images/ajax-preload.gif">');
             },
             error: function() {
                 console.log('Error');
@@ -51,5 +51,54 @@ $(document).ready(function() {
             }
         });
     };
+
     $('.ajax_submit').click(seeMoreRequest);
+    $('[id^=seeMissingResponses]').submit(loadMissingResponsesSubmitHandler);
 });
+
+// this should be bound to the form object
+function loadMissingResponsesSubmitHandler(e) {
+    e.preventDefault();
+
+    var submitButton = $(this).find('[id^=missingResponsesButton-]');
+
+    var panel = $(this).closest('.panel');
+    var panelBody = panel.find('.panel-body');
+
+
+    $.ajax({
+        type: 'POST',
+        cache: false,
+        url: $(this).attr('action'),
+        data: $(this).serialize(),
+        beforeSend: function() {
+            // remove the button 
+            submitButton.html('<img height="25" width="25" src="/images/ajax-preload.gif">');
+        },
+        error: function() {
+            // todo handle error
+        },
+        success: function(data) {
+            var appendedQuestion = $(data).find('#questionBody-0').html();
+            
+            if (typeof appendedQuestion != 'undefined') {
+                $(panelBody).html(appendedQuestion);
+
+                bindErrorImages(panelBody.find('.profile-pic-icon-hover, .profile-pic-icon-click'));
+                // bind the show picture onclick events
+                bindStudentPhotoLink(panelBody.find('.profile-pic-icon-click > .student-profile-pic-view-link'));
+                // bind the show picture onhover events
+                bindStudentPhotoHoverLink(panelBody.find('.profile-pic-icon-hover'));
+
+                showHideStats();
+
+                submitButton.remove();
+            } else {
+                // todo: make a status message div
+                submitButton.html('There are too many responses for this question. Please view the responses one section at a time.');
+            }
+            
+        }
+    });
+
+}
