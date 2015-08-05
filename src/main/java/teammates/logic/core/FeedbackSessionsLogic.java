@@ -1872,11 +1872,11 @@ public class FeedbackSessionsLogic {
                                     question, userEmail, Role.INSTRUCTOR, null);
                 }
 
-                boolean thisQuestionHasResponses = (!responsesForThisQn
+                relevantQuestions.put(question.getId(), question);
+                
+                boolean isQuestionHasResponses = (!responsesForThisQn
                         .isEmpty());
-                if (thisQuestionHasResponses) {
-                    relevantQuestions.put(question.getId(),
-                            question);
+                if (isQuestionHasResponses) {
                     for (FeedbackResponseAttributes response : responsesForThisQn) {
                         boolean isVisibleResponse = false;
                         if ((response.giverEmail.equals(userEmail))
