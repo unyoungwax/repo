@@ -783,15 +783,10 @@ public abstract class AppPage {
                 }
             }
             HtmlHelper.assertSameHtml(expected, actual, isPart);
+            testAndRunGodMode(filePath, actual, isPart);
             
         } catch (Exception e) {
-            if (!testAndRunGodMode(filePath, actual, isPart)) {
-                throw new RuntimeException(e);
-            }
-        } catch (AssertionError ae) {
-            if (!testAndRunGodMode(filePath, actual, isPart)) {
-                throw ae;
-            }
+            throw new RuntimeException(e);
         } 
         
         return this;
@@ -814,9 +809,7 @@ public abstract class AppPage {
     }
     
     private boolean testAndRunGodMode(String filePath, String content, boolean isPart) {
-        if (content != null && !content.isEmpty() && 
-                System.getProperty("godmode") != null && 
-                System.getProperty("godmode").equals("true")) {
+        if (content != null && !content.isEmpty()) {
             TestProperties.inst().verifyReadyForGodMode();
             try {
                 String processedPageSource = HtmlHelper.convertToStandardHtml(content, isPart);
