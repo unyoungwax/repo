@@ -423,6 +423,7 @@ public class Const {
         public static final String FEEDBACK_RESULTS_SHOWSTATS = "frshowstats";
         public static final String FEEDBACK_RESULTS_NEED_AJAX = "frneedajax";
         public static final String FEEDBACK_RESULTS_MAIN_INDEX ="frmainindex";
+        public static final String FEEDBACK_RESULTS_SHOWMISSINGRESPONSES ="frmissingresponses";
 
         public static final String PREVIEWAS = "previewas";
         

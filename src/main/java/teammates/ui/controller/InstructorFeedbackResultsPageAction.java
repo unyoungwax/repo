@@ -49,7 +49,14 @@ public class InstructorFeedbackResultsPageAction extends Action {
         String showStats = getRequestParamValue(Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS);
         String groupByTeam = getRequestParamValue(Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM);
         String sortType = getRequestParamValue(Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE);
-
+        String isShowingMissingResponsesParam = getRequestParamValue(Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES);
+        
+        // isShowingMissingResponses is used to determine if the question view builds
+        // the missing responses. Note that the other viewtypes ignore this setting for now.
+        boolean isShowingMissingResponses = isShowingMissingResponsesParam == null 
+                                          ? false
+                                          : Boolean.parseBoolean(isShowingMissingResponsesParam);
+                                          
         if (selectedSection == null) {
             selectedSection = ALL_SECTION_OPTION;
         }
@@ -128,7 +135,7 @@ public class InstructorFeedbackResultsPageAction extends Action {
 
         switch (sortType) {
             case "question":
-                data.initForViewByQuestion(instructor, selectedSection, showStats, groupByTeam);
+                data.initForViewByQuestion(instructor, selectedSection, showStats, groupByTeam, isShowingMissingResponses);
                 return createShowPageResult(
                         Const.ViewURIs.INSTRUCTOR_FEEDBACK_RESULTS_BY_QUESTION, data);
             case "recipient-giver-question":

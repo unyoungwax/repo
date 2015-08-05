@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import teammates.common.datatransfer.AccountAttributes;
-import teammates.common.datatransfer.CommentSendingState;
 import teammates.common.datatransfer.FeedbackParticipantType;
 import teammates.common.datatransfer.FeedbackQuestionAttributes;
 import teammates.common.datatransfer.FeedbackQuestionDetails;
@@ -121,7 +120,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
      */
     public void initForViewByQuestion(InstructorAttributes instructor, 
                                       String selectedSection, String showStats, 
-                                      String groupByTeam) {
+                                      String groupByTeam, boolean isShowingMissingResponses) {
         Assumption.assertNotNull(bundle);
         this.viewType = ViewType.QUESTION;
         this.sortType = ViewType.QUESTION.toString();
@@ -137,7 +136,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
             FeedbackQuestionAttributes question = entry.getKey();
             List<FeedbackResponseAttributes> responses = entry.getValue();
             
-            questionPanels.add(buildQuestionTableAndResponseRows(question, responses, ""));
+            questionPanels.add(buildQuestionTableAndResponseRows(question, responses, isShowingMissingResponses, ""));
         }
         
     }
@@ -593,9 +592,9 @@ public class InstructorFeedbackResultsPageData extends PageData {
             List<FeedbackResponseAttributes> responsesForQuestion = responsesForParticipantForQuestion.getValue();
 
             InstructorFeedbackResultsQuestionTable questionTable 
-                = buildQuestionTableAndResponseRows(currentQuestion, responsesForQuestion,
-                                                    String.format(additionalInfoId, participantIndex, questionIndex), 
-                                                    participantIdentifier, true);
+                = buildQuestionTableAndResponseRowsWithMissingResponses(currentQuestion, responsesForQuestion,
+                                                                        String.format(additionalInfoId, participantIndex, questionIndex), 
+                                                                        participantIdentifier, true);
             questionTable.setBoldQuestionNumber(false);
             questionTables.add(questionTable);
       
@@ -625,6 +624,14 @@ public class InstructorFeedbackResultsPageData extends PageData {
         return participantPanel;
     }
     
+    private InstructorFeedbackResultsQuestionTable buildQuestionTableAndResponseRowsWithMissingResponses(
+                                    FeedbackQuestionAttributes question,
+                                    List<FeedbackResponseAttributes> responses, String additionalInfoId,
+                                    String participantIdentifier, boolean isShowingResponseRows) {
+        return buildQuestionTableAndResponseRows(question, responses, additionalInfoId, true, 
+                                                 participantIdentifier, isShowingResponseRows);
+    }
+
     private void finalizeBuildingSectionPanelWithoutTeamStats(InstructorFeedbackResultsSectionPanel sectionPanel,
                                                           String sectionName) {
         LinkedHashMap<String, Map<FeedbackQuestionAttributes, List<FeedbackResponseAttributes>>> emptyResponseMap = new LinkedHashMap<>();
@@ -953,8 +960,10 @@ public class InstructorFeedbackResultsPageData extends PageData {
     private InstructorFeedbackResultsQuestionTable buildQuestionTableAndResponseRows(
                                     FeedbackQuestionAttributes question,
                                     List<FeedbackResponseAttributes> responses,
+                                    boolean isShowingMissingResponses,
                                     String additionalInfoId) {
         return buildQuestionTableAndResponseRows(question, responses, additionalInfoId, 
+                                                 isShowingMissingResponses,
                                                  null, true);
     }
     
@@ -969,7 +978,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
                                     List<FeedbackResponseAttributes> responses,
                                     String additionalInfoId) {
         return buildQuestionTableAndResponseRows(question, responses, additionalInfoId, 
-                                                 null, false);   
+                                                 false, null, false);   
     }
                                     
     /**
@@ -978,6 +987,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
      * @param question
      * @param responses
      * @param additionalInfoId
+     * @param isShowingMissingResponses  true to construct missing response rows
      * @param participantIdentifier  for viewTypes * > Question > *, constructs missing response rows
      *                               only for the given participant
      * @param isShowingResponseRows  if false, hides the response rows 
@@ -986,6 +996,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
                                                               FeedbackQuestionAttributes question,
                                                               List<FeedbackResponseAttributes> responses,
                                                               String additionalInfoId, 
+                                                              boolean isShowingMissingResponses,
                                                               String participantIdentifier, boolean isShowingResponseRows) {
         FeedbackQuestionDetails questionDetails = question.getQuestionDetails();
         String statisticsTable = questionDetails.getQuestionResultStatisticsHtml(responses, question, this, 
@@ -1000,7 +1011,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
             switch (viewType) {
                 case QUESTION:
                     buildTableColumnHeaderForQuestionView(columnTags, isSortable);
-                    responseRows = buildResponseRowsForQuestion(question, responses);
+                    responseRows = buildResponseRowsForQuestion(question, responses, isShowingMissingResponses);
                     break;
                 case GIVER_QUESTION_RECIPIENT:
                     buildTableColumnHeaderForGiverQuestionRecipientView(columnTags, isSortable);
@@ -1025,6 +1036,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
                                                                         columnTags, isSortable);
         questionTable.setShowResponseRows(isShowingResponseRows);
         questionTable.setCollapsible(isCollapsible);
+        questionTable.setShowLoadMissingResponsesButton(!isShowingMissingResponses);
         
         return questionTable;
     }
@@ -1119,14 +1131,18 @@ public class InstructorFeedbackResultsPageData extends PageData {
      * the missing responses between pairs of givers and recipients.
      * @param question
      * @param responses  existing responses for the question
+     * @param isShowingMissingResponses
      * 
      * @see configureResponseRowForViewType
      */
     private List<InstructorFeedbackResultsResponseRow> buildResponseRowsForQuestion(FeedbackQuestionAttributes question,
-                                                                                    List<FeedbackResponseAttributes> responses) {
+                                                                                    List<FeedbackResponseAttributes> responses,
+                                                                                    boolean isShowingMissingResponses) {
         List<InstructorFeedbackResultsResponseRow> responseRows = new ArrayList<InstructorFeedbackResultsResponseRow>();
         
-        List<String> possibleGiversWithoutResponses = bundle.getPossibleGivers(question);
+        List<String> possibleGiversWithoutResponses = isShowingMissingResponses 
+                                                    ? bundle.getPossibleGivers(question)
+                                                    : new ArrayList<String>();
         List<String> possibleReceiversWithoutResponsesForGiver = new ArrayList<String>();
 
         String prevGiver = "";
@@ -1173,9 +1189,11 @@ public class InstructorFeedbackResultsPageData extends PageData {
             responseRows.add(responseRow);
         }
         
-        responseRows.addAll(getRemainingMissingResponseRows(question, possibleGiversWithoutResponses, 
-                                                            possibleReceiversWithoutResponsesForGiver, 
-                                                            prevGiver, viewType));
+        if (isShowingMissingResponses) {
+            responseRows.addAll(getRemainingMissingResponseRows(question, possibleGiversWithoutResponses, 
+                                                                possibleReceiversWithoutResponsesForGiver, 
+                                                                prevGiver, viewType));
+        }
         
         return responseRows;
     }
