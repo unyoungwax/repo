@@ -1036,7 +1036,7 @@ public class InstructorFeedbackResultsPageData extends PageData {
                                                                         columnTags, isSortable);
         questionTable.setShowResponseRows(isShowingResponseRows);
         questionTable.setCollapsible(isCollapsible);
-        questionTable.setShowLoadMissingResponsesButton(!isShowingMissingResponses);
+        questionTable.setShowLoadMissingResponsesButton(isShowingResponseRows && !isShowingMissingResponses);
         
         return questionTable;
     }
