@@ -22,7 +22,7 @@
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="${data.sortType}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="false">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="true">
             </form>
             <div class='display-icon pull-right'>
                 <span class="glyphicon ${ isShowingAll && !isPanelsCollapsed ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'} pull-right"></span>

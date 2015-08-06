@@ -49,9 +49,6 @@ $(document).ready(function() {
                 $(panelHeading).trigger('click');
                 showHideStats();
 
-                // display button for showing missing responses
-                $(panelHeading).find('[id^=seeMissingResponses]').show();
-
             }
         });
     };
@@ -82,6 +79,7 @@ function loadMissingResponsesSubmitHandler(e) {
         beforeSend: function() {
             // removes the button 
             submitButton.html('<img height="25" width="25" src="/images/ajax-preload.gif">');
+            console.log(submitButton);
         },
         error: function() {
             // TODO handle error
