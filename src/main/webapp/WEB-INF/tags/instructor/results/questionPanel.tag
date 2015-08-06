@@ -22,12 +22,13 @@
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="${data.sortType}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="false">
             </form>
             <div class='display-icon pull-right'>
                 <span class="glyphicon ${ isShowingAll && !isPanelsCollapsed ? 'glyphicon-chevron-up' : 'glyphicon-chevron-down'} pull-right"></span>
             </div>
-            
         </c:if>
+        
         <c:choose>
             <c:when test="${questionPanel.boldQuestionNumber}">
                 <strong>Question ${questionPanel.question.questionNumber}: </strong>
@@ -42,6 +43,19 @@
                 <span class="text-preserve-space">${questionPanel.questionText}${questionPanel.additionalInfoText}</span>
             </c:otherwise>
         </c:choose>
+        <c:if test="${questionPanel.showLoadMissingResponsesButton}">
+            <form <c:if test="${!isShowingAll}">style="display:none"</c:if> id="seeMissingResponses-${questionPanel.question.questionNumber}" class="seeMoreForm-${questionPanel.question.questionNumber}" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
+                <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID%>" value="${questionPanel.courseId}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME%>" value="${questionPanel.feedbackSessionName}">
+                <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="${data.account.googleId}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM%>" value="${data.groupByTeam}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="${data.sortType}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
+                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="true">
+                <input id="missingResponsesButton-${questionPanel.question.questionNumber}" type="submit" class="btn btn-xs btn-warning" value="Display missing responses">
+            </form>
+        </c:if>
     </div>
     <div <c:if test="${questionPanel.collapsible}">class="${questionPanel.responsesBodyClass}"</c:if>>
         <div class="panel-body padding-0" <c:if test="${questionIndex != null}">id="questionBody-${questionIndex}"</c:if>>

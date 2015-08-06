@@ -48,15 +48,25 @@ $(document).ready(function() {
                 $(panelHeading).click(toggleSingleCollapse);
                 $(panelHeading).trigger('click');
                 showHideStats();
+
+                // display button for showing missing responses
+                $(panelHeading).find('[id^=seeMissingResponses]').show();
+
             }
         });
     };
 
+    // .ajax_submit is for loading a question's table by ajax if there are too many responses
     $('.ajax_submit').click(seeMoreRequest);
+
+    // load missing responses is to reload a question table, but with the missing responses shown this time
     $('[id^=seeMissingResponses]').submit(loadMissingResponsesSubmitHandler);
 });
 
-// this should be bound to the form object
+/**
+ * Event handler for submitting the form to reload the question table with missing responses shown
+ * this should be bound to the form element
+ */
 function loadMissingResponsesSubmitHandler(e) {
     e.preventDefault();
 
@@ -65,23 +75,21 @@ function loadMissingResponsesSubmitHandler(e) {
     var panel = $(this).closest('.panel');
     var panelBody = panel.find('.panel-body');
 
-
     $.ajax({
         type: 'POST',
-        cache: false,
         url: $(this).attr('action'),
         data: $(this).serialize(),
         beforeSend: function() {
-            // remove the button 
+            // removes the button 
             submitButton.html('<img height="25" width="25" src="/images/ajax-preload.gif">');
         },
         error: function() {
-            // todo handle error
+            // TODO handle error
         },
         success: function(data) {
             var appendedQuestion = $(data).find('#questionBody-0').html();
             
-            if (typeof appendedQuestion != 'undefined') {
+            if (typeof appendedQuestion !== 'undefined') {
                 $(panelBody).html(appendedQuestion);
 
                 bindErrorImages(panelBody.find('.profile-pic-icon-hover, .profile-pic-icon-click'));
@@ -94,11 +102,10 @@ function loadMissingResponsesSubmitHandler(e) {
 
                 submitButton.remove();
             } else {
-                // todo: make a status message div
+                // TODO: make a status message div to display error messages
                 submitButton.html('There are too many responses for this question. Please view the responses one section at a time.');
             }
             
         }
     });
-
 }
