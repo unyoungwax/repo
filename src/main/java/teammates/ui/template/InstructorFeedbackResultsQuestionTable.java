@@ -60,8 +60,8 @@ public class InstructorFeedbackResultsQuestionTable {
         this.questionText = data.getBundle().getQuestionText(question.getId());
         
         this.panelClass = responses.isEmpty() ? 
-                          "panel-default" : 
-                          "panel-info";
+                          "default" : 
+                          "info";
         
         this.responsesBodyClass = data.getBundle().isComplete() && !data.isShouldCollapsed() ? 
                                   "panel-collapse collapse in" :

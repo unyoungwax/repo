@@ -98,7 +98,7 @@ function loadMissingResponsesSubmitHandler(e) {
 
                 showHideStats();
 
-                submitButton.remove();
+                submitButton.hide();
             } else {
                 // TODO: make a status message div to display error messages
                 submitButton.html('There are too many responses for this question. Please view the responses one section at a time.');

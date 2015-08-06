@@ -11,7 +11,7 @@
 <%@ attribute name="questionPanel" type="teammates.ui.template.InstructorFeedbackResultsQuestionTable" required="true" %>
 
 
-<div class="panel ${questionPanel.panelClass}">
+<div class="panel panel-${questionPanel.panelClass}">
     <div class="panel-heading${isShowingAll ? '' : ' ajax_submit'}">
         <c:if test="${questionPanel.collapsible}">
             <form style="display:none;" id="seeMore-${questionPanel.question.questionNumber}" class="seeMoreForm-${questionPanel.question.questionNumber}" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
@@ -53,45 +53,50 @@
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
                 <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="true">
-                <input id="missingResponsesButton-${questionPanel.question.questionNumber}" type="submit" class="btn btn-xs btn-warning" value="Display missing responses">
+                <input id="missingResponsesButton-${questionPanel.question.questionNumber}" type="submit" class="btn btn-xs btn-${questionPanel.panelClass}" 
+                       data-toggle="tooltip" title="This will reload responses to include responses between possible pairs of givers and recipients" 
+                       value="Display missing Responses">
             </form>
         </c:if>
     </div>
     <div <c:if test="${questionPanel.collapsible}">class="${questionPanel.responsesBodyClass}"</c:if>>
         <div class="panel-body padding-0" <c:if test="${questionIndex != null}">id="questionBody-${questionIndex}"</c:if>>
-            
-            <c:if test="${!questionPanel.questionHasResponses}">
-                <div class="col-sm-12">
-                    <i class="text-muted">There are no responses for this question.</i>
-                </div>
-            </c:if>
-            
-            <c:if test="${isShowingAll && questionPanel.questionHasResponses}">
-                <div class="resultStatistics">
-                    ${questionPanel.questionStatisticsTable}
-                </div>
-                <c:if test="${questionPanel.showResponseRows}">
-                    <div class="table-responsive">
-                        <table class="table table-striped table-bordered dataTable margin-0">
-                            <thead class="background-color-medium-gray text-color-gray font-weight-normal">
-                                <tr>
-                                    <c:forEach items="${questionPanel.columns}" var="thElement">
-                                        <th ${thElement.attributesToString}> 
-                                            ${thElement.content}
-                                            <c:if test="${questionPanel.isColumnSortable[thElement.content]}"><span class="icon-sort unsorted"></span></c:if>
-                                        </th>
-                                    </c:forEach>
-                                </tr>
-                            <thead>
-                            <tbody>
-                                <c:forEach items="${questionPanel.responses}" var="responseRow">
-                                    <results:responseRow responseRow="${responseRow}"/>
-                                </c:forEach>
-                            </tbody>
-                        </table>
+            <c:choose>
+                <c:when test="${(empty questionPanel.responses && questionPanel.showResponseRows) || !isShowingAll}">
+                    <div class="col-sm-12">
+                        <i class="text-muted">There are no responses for this question.</i>
                     </div>
-                </c:if>
-            </c:if>
+                </c:when>
+                <c:otherwise>
+                    <c:if test="${questionPanel.questionHasResponses}">
+                        <div class="resultStatistics">
+                            ${questionPanel.questionStatisticsTable}
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty questionPanel.responses && questionPanel.showResponseRows}">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered dataTable margin-0">
+                                <thead class="background-color-medium-gray text-color-gray font-weight-normal">
+                                    <tr>
+                                        <c:forEach items="${questionPanel.columns}" var="thElement">
+                                            <th ${thElement.attributesToString}> 
+                                                ${thElement.content}
+                                                <c:if test="${questionPanel.isColumnSortable[thElement.content]}"><span class="icon-sort unsorted"></span></c:if>
+                                            </th>
+                                        </c:forEach>
+                                    </tr>
+                                <thead>
+                                <tbody>
+                                    <c:forEach items="${questionPanel.responses}" var="responseRow">
+                                        <results:responseRow responseRow="${responseRow}"/>
+                                    </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </c:if>
+                    
+                </c:otherwise>
+            </c:choose>
             
         </div>
     </div>
