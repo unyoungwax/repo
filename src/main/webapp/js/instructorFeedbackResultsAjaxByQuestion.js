@@ -53,7 +53,7 @@ $(document).ready(function() {
         });
     };
 
-    // .ajax_submit is for loading a question's table by ajax if there are too many responses
+    // seeMoreRequest is for loading a question's table by ajax if there are too many responses
     $('.ajax_submit').click(seeMoreRequest);
 
     // load missing responses is to reload a question table, but with the missing responses shown this time
@@ -77,17 +77,18 @@ function loadMissingResponsesSubmitHandler(e) {
         url: $(this).attr('action'),
         data: $(this).serialize(),
         beforeSend: function() {
-            // removes the button 
-            submitButton.html('<img height="25" width="25" src="/images/ajax-preload.gif">');
-            console.log(submitButton);
+            // show ajax spinner and remove button
+            submitButton.before('<img class="display-icon" height="25" width="25" src="/images/ajax-preload.gif">');
+            submitButton.hide();
         },
         error: function() {
-            // TODO handle error
+            // TODO handle error for ajax
         },
         success: function(data) {
             var appendedQuestion = $(data).find('#questionBody-0').html();
             
             if (typeof appendedQuestion !== 'undefined') {
+                
                 $(panelBody).html(appendedQuestion);
 
                 bindErrorImages(panelBody.find('.profile-pic-icon-hover, .profile-pic-icon-click'));
@@ -98,10 +99,9 @@ function loadMissingResponsesSubmitHandler(e) {
 
                 showHideStats();
 
-                submitButton.hide();
             } else {
-                // TODO: make a status message div to display error messages
                 submitButton.html('There are too many responses for this question. Please view the responses one section at a time.');
+                submitButton.show();
             }
             
         }

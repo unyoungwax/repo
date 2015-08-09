@@ -1,5 +1,6 @@
 <%@ tag description="instructorFeedbackResults - by question" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <%@ tag import="teammates.common.util.Const" %>
 
@@ -29,38 +30,22 @@
             </div>
         </c:if>
         
-        <div class="pull-left">
-            <c:choose>
-                <c:when test="${questionPanel.boldQuestionNumber}">
-                    <strong>Question ${questionPanel.question.questionNumber}: </strong>
-                    <div class="inline panel-heading-text">
-                        <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
-                        <span class="text-preserve-space">${questionPanel.questionText}${questionPanel.additionalInfoText}</span>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    Question ${questionPanel.question.questionNumber}: 
+        
+        <c:choose>
+            <c:when test="${questionPanel.boldQuestionNumber}">
+                <strong>Question ${questionPanel.question.questionNumber}: </strong>
+                <div class="inline panel-heading-text">
                     <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
                     <span class="text-preserve-space">${questionPanel.questionText}${questionPanel.additionalInfoText}</span>
-                </c:otherwise>
-            </c:choose>
-        </div>
-        &nbsp;&nbsp;&nbsp;
-        <c:if test="${questionPanel.showLoadMissingResponsesButton}">
-            <form <c:if test="${!isShowingAll}">style="display:none"</c:if> id="seeMissingResponses-${questionPanel.question.questionNumber}" class="loadMissingResponsesForm inline" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
-                <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID%>" value="${questionPanel.courseId}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME%>" value="${questionPanel.feedbackSessionName}">
-                <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="${data.account.googleId}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM%>" value="${data.groupByTeam}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="${data.sortType}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
-                <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="true">
-                <input id="missingResponsesButton-${questionPanel.question.questionNumber}" type="submit" class="btn btn-xs btn-${questionPanel.panelClass}" 
-                       data-toggle="tooltip" title="This will reload responses to include responses between possible pairs of givers and recipients" 
-                       value="Show pending responses">
-            </form>
-        </c:if>
+                </div>
+            </c:when>
+            <c:otherwise>
+                Question ${questionPanel.question.questionNumber}: 
+                <!--Note: When an element has class text-preserve-space, do not insert and HTML spaces-->
+                <span class="text-preserve-space">${questionPanel.questionText}${questionPanel.additionalInfoText}</span>
+            </c:otherwise>
+        </c:choose>
+        
     </div>
     <div <c:if test="${questionPanel.collapsible}">class="${questionPanel.responsesBodyClass}"</c:if>>
         <div class="panel-body padding-0" <c:if test="${questionIndex != null}">id="questionBody-${questionIndex}"</c:if>>
@@ -93,8 +78,30 @@
                                     <c:forEach items="${questionPanel.responses}" var="responseRow">
                                         <results:responseRow responseRow="${responseRow}"/>
                                     </c:forEach>
+                                    
                                 </tbody>
                             </table>
+                            <table>
+                                <tr>
+                                        <td colspan="${fn:length(questionPanel.columns)}">
+                                        <c:if test="${questionPanel.showLoadMissingResponsesButton}">
+                                                <form <c:if test="${!isShowingAll}">style="display:none"</c:if> id="seeMissingResponses-${questionPanel.question.questionNumber}" class="loadMissingResponsesForm inline" action="<%=Const.ActionURIs.INSTRUCTOR_FEEDBACK_RESULTS_PAGE%>">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.COURSE_ID%>" value="${questionPanel.courseId}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_SESSION_NAME%>" value="${questionPanel.feedbackSessionName}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.USER_ID%>" value="${data.account.googleId}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_GROUPBYTEAM%>" value="${data.groupByTeam}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SORTTYPE%>" value="${data.sortType}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWSTATS%>" value="on" id="showStats-${questionPanel.question.questionNumber}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_QUESTION_NUMBER%>" value="${questionPanel.question.questionNumber}">
+                                                    <input type="hidden" name="<%=Const.ParamsNames.FEEDBACK_RESULTS_SHOWMISSINGRESPONSES%>" value="true">
+                                                    <input id="missingResponsesButton-${questionPanel.question.questionNumber}" type="submit" class="btn btn-default btn-xs" 
+                                                           data-toggle="tooltip" title="This will reload the table for this question to include responses between possible pairs of givers and recipients" 
+                                                           value="Show pending responses">
+                                                </form>
+                                        </c:if>
+                                        </td>
+                                    </tr>
+                                </table>
                         </div>
                     </c:if>
                     
