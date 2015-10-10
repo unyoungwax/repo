@@ -3,6 +3,7 @@ package teammates.ui.controller;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
@@ -222,6 +223,15 @@ public class AdminActivityLogPageAction extends Action {
         }
         
         String status="&nbsp;&nbsp;Total Logs gone through in last search: " + totalLogsSearched + "<br>";
+        
+        ActivityLogEntry earliestLog = getEarliestLog(appLogs);
+        if (earliestLog != null) {
+            Date earliestLogDate = new Date(earliestLog.getTime());
+            status += "The earliest log shown on " + earliestLogDate;
+            
+        }
+        
+        
         //link for Next button, will fetch older logs
         if (totalLogsSearched >= MAX_LOGSEARCH_LIMIT) {
             status += "<br><span class=\"red\">&nbsp;&nbsp;Maximum amount of logs per request have been searched.</span><br>";
@@ -243,6 +253,16 @@ public class AdminActivityLogPageAction extends Action {
     }
     
     
+    private ActivityLogEntry getEarliestLog(List<ActivityLogEntry> appLogs) {
+        ActivityLogEntry earliestLog = null;
+        for (ActivityLogEntry log : appLogs) {
+            if ((earliestLog == null) || ((earliestLog.getTime() > log.getTime()) && (log.toShow()))) {
+                earliestLog = log;
+            }
+        }
+        return earliestLog;
+    }
+
     /*
      * Functions used to load local time for activity log using AJAX
      */
