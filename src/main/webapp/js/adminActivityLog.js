@@ -55,18 +55,18 @@ function submitFormAjax(offset) {
 	$('input[name=offset]').val(offset);
 	var formObject = $("#ajaxLoaderDataForm");
 	var formData = formObject.serialize();
-	var button = $('#button_older');
+	var olderButton = $('#button_older');
 	var lastLogRow = $('#logsTable tr:last');
 	
 	$.ajax({
         type : 'POST',
         url :   "/admin/adminActivityLogPage?" + formData,
         beforeSend : function() {
-        	button.html("<img src='/images/ajax-loader.gif'/>");
+        	olderButton.html("<img src='/images/ajax-loader.gif'/>");
         },
         error : function() {
             setFormErrorMessage(olderButton, "Failed to load older logs. Please try again.");
-            button.html("Retry");
+            olderButton.html("Retry");
         },
         success : function(data) {
             setTimeout(function(){
