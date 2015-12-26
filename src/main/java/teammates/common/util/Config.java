@@ -97,6 +97,10 @@ public class Config {
     private String getAppUrl() {
         return Url.trimTrailingSlash(props.getProperty("app.url"));
     }
+    
+    public static AppUrl getAppUrl(String relativeUrl) {
+        return new AppUrl(APP_URL + relativeUrl);
+    }
 
     private String getBackdoorKey() {
         return props.getProperty("app.backdoor.key");
