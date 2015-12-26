@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import teammates.common.datatransfer.DataBundle;
 import teammates.common.datatransfer.FeedbackSessionAttributes;
 import teammates.common.datatransfer.InstructorAttributes;
+import teammates.common.util.AppUrl;
 import teammates.common.util.Const;
 import teammates.common.util.ThreadHelper;
 import teammates.test.driver.BackDoor;
@@ -25,7 +26,6 @@ import teammates.test.pageobjects.InstructorCourseEnrollPage;
 import teammates.test.pageobjects.InstructorFeedbacksPage;
 import teammates.test.pageobjects.InstructorHelpPage;
 import teammates.test.pageobjects.InstructorHomePage;
-import teammates.test.util.Url;
 
 /**
  * Tests Home page and login page for instructors. 
@@ -190,7 +190,7 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
         ______TS("link: course enroll");
         InstructorCourseEnrollPage enrollPage = homePage.clickCourseErollLink(courseId);
         enrollPage.verifyContains("Enroll Students for CHomeUiT.CS1101");
-        String expectedEnrollLinkText = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        String expectedEnrollLinkText = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
                                         .withCourseId(courseId)
                                         .withUserId(instructorId)
                                         .toAbsoluteString();
@@ -200,7 +200,7 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
         ______TS("link: course view");
         InstructorCourseDetailsPage detailsPage = homePage.clickCourseViewLink(courseId);
         detailsPage.verifyContains("Course Details");
-        String expectedViewLinkText = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
+        String expectedViewLinkText = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
                                         .withCourseId(courseId)
                                         .withUserId(instructorId)
                                         .toAbsoluteString();
@@ -210,7 +210,7 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
         ______TS("link: course edit");
         InstructorCourseEditPage editPage = homePage.clickCourseEditLink(courseId);
         editPage.verifyContains("Edit Course Details");
-        String expectedEditLinkText = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_EDIT_PAGE)
+        String expectedEditLinkText = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_EDIT_PAGE)
                                         .withCourseId(courseId)
                                         .withUserId(instructorId)
                                         .toAbsoluteString();
@@ -220,7 +220,7 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
         ______TS("link: course add session");
         InstructorFeedbacksPage feedbacksPage =  homePage.clickCourseAddEvaluationLink(courseId);
         feedbacksPage.verifyContains("Add New Feedback Session");
-        String expectedAddSessionLinkText = new Url(Const.ActionURIs.INSTRUCTOR_FEEDBACKS_PAGE)
+        String expectedAddSessionLinkText = createUrl(Const.ActionURIs.INSTRUCTOR_FEEDBACKS_PAGE)
                                         .withUserId(instructorId)
                                         .withCourseId(courseId)
                                         .toAbsoluteString();
@@ -333,7 +333,9 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
         String courseIdForCS2104 = testData.courses.get("CHomeUiT.CS2104").id;
         
         //delete the course, then submit archive request to it
-        Url urlToArchive = homePage.getArchiveCourseLink(courseIdForCS2104);
+        // the link returned here might be absolute
+        String fullArchiveLink = homePage.getArchiveCourseLink(courseIdForCS2104);
+        AppUrl urlToArchive = createUrl(AppUrl.getRelativePath(fullArchiveLink));
         homePage.clickAndConfirm(homePage.getDeleteCourseLink(courseIdForCS2104));
         browser.driver.get(urlToArchive.toAbsoluteString());
         assertTrue(browser.driver.getCurrentUrl().endsWith(Const.ViewURIs.UNAUTHORIZED));
@@ -460,15 +462,15 @@ public class InstructorHomePageUiTest extends BaseUiTestCase {
     }
     
     private void loginAsInstructor(String googleId){
-         Url editUrl = new Url(Const.ActionURIs.INSTRUCTOR_HOME_PAGE)
+        AppUrl editUrl = createUrl(Const.ActionURIs.INSTRUCTOR_HOME_PAGE)
                     .withUserId(googleId);
         
         homePage = loginAdminToPage(browser, editUrl, InstructorHomePage.class);
     }
 
     private void loginWithPersistenceProblem() {
-        Url homeUrl = new Url(Const.ActionURIs.INSTRUCTOR_HOME_PAGE)
-                    .withParam(Const.ParamsNames.CHECK_PERSISTENCE_COURSE, "something")
+        AppUrl homeUrl = ((AppUrl) createUrl(Const.ActionURIs.INSTRUCTOR_HOME_PAGE)
+                    .withParam(Const.ParamsNames.CHECK_PERSISTENCE_COURSE, "something"))
                     .withUserId("unreg_user");
         
         homePage = loginAdminToPage(browser, homeUrl, InstructorHomePage.class);

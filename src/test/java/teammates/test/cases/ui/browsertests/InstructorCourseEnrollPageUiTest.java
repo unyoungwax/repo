@@ -7,6 +7,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import teammates.common.datatransfer.DataBundle;
+import teammates.common.util.AppUrl;
 import teammates.common.util.Const;
 import teammates.common.util.FieldValidator;
 import teammates.common.util.StringHelper;
@@ -16,8 +17,6 @@ import teammates.test.pageobjects.BrowserPool;
 import teammates.test.pageobjects.InstructorCourseEnrollPage;
 import teammates.test.pageobjects.InstructorCourseEnrollResultPage;
 import teammates.test.pageobjects.InstructorCoursesDetailsPage;
-import teammates.test.util.Url;
-
 
 /**
  * Covers 'enroll' view for instructors.
@@ -29,7 +28,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
     private InstructorCourseEnrollPage enrollPage;
     
     private static String enrollString = "";
-    private Url enrollUrl;
+    private AppUrl enrollUrl;
 
     @BeforeClass
     public static void classSetup() throws Exception {
@@ -51,7 +50,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
         
         ______TS("typical enroll page");
         
-        enrollUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        enrollUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
         .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
         .withCourseId(testData.courses.get("CCEnrollUiT.CS2104").id);
         
@@ -66,12 +65,14 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
         ______TS("link for the sample spreadsheet");
         String expectedShaHexForWindows = "98df8d0e8285a8192ed88183380947ca1c36ca68";
         String expectedShaHexForUnix = "e02099ef19b16a5d30e8d09e6d22f179fa123272";
+        // the link returned here might be absolute
+        String fullSpreadsheetLink = enrollPage.getSpreadsheetLink();
+        AppUrl spreadsheetLink = createUrl(AppUrl.getRelativePath(fullSpreadsheetLink));
 
-        
         try{
-            enrollPage.verifyDownloadableFile(enrollPage.getSpreadsheetLink(), expectedShaHexForWindows);
+            enrollPage.verifyDownloadableFile(spreadsheetLink, expectedShaHexForWindows);
         } catch (AssertionError e){
-            enrollPage.verifyDownloadableFile(enrollPage.getSpreadsheetLink(), expectedShaHexForUnix);
+            enrollPage.verifyDownloadableFile(spreadsheetLink, expectedShaHexForUnix);
         }
     }
 
@@ -84,7 +85,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
 
         ______TS("enroll action: existent course, enroll lines with section field");
 
-        enrollUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        enrollUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(testData.courses.get("CCEnrollUiT.CS2104").id);
 
@@ -111,7 +112,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
         assertEquals(enrollString, enrollPage.getEnrollText());
         
         // Ensure students were actually enrolled
-        Url coursesPageUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
+        AppUrl coursesPageUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(courseId);
         InstructorCoursesDetailsPage detailsPage = loginAdminToPage(browser, coursesPageUrl, InstructorCoursesDetailsPage.class);
@@ -124,7 +125,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
         BackDoor.createCourse(testData.courses.get("CCEnrollUiT.CS2104"));
         BackDoor.createInstructor(testData.instructors.get("CCEnrollUiT.teammates.test"));
         
-        enrollUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        enrollUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(testData.courses.get("CCEnrollUiT.CS2104").id);
         
@@ -146,7 +147,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
         assertEquals(enrollString, enrollPage.getEnrollText());
         
         // Ensure students were actually enrolled
-        coursesPageUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
+        coursesPageUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_DETAILS_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(courseId);
         detailsPage = loginAdminToPage(browser, coursesPageUrl, InstructorCoursesDetailsPage.class);
@@ -154,7 +155,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
 
         ______TS("enroll action: fail to enroll as a team cannot be in 2 different sections");
 
-        enrollUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        enrollUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(testData.courses.get("CCEnrollUiT.CS2104").id);
         
@@ -182,7 +183,7 @@ public class InstructorCourseEnrollPageUiTest extends BaseUiTestCase {
 
         ______TS("enroll action: fail to enroll as there is no input");
 
-        enrollUrl = new Url(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
+        enrollUrl = createUrl(Const.ActionURIs.INSTRUCTOR_COURSE_ENROLL_PAGE)
             .withUserId(testData.instructors.get("CCEnrollUiT.teammates.test").googleId)
             .withCourseId(testData.courses.get("CCEnrollUiT.CS2104").id);
         

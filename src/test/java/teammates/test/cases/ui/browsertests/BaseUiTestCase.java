@@ -1,6 +1,7 @@
 package teammates.test.cases.ui.browsertests;
 
 import teammates.common.datatransfer.DataBundle;
+import teammates.common.util.AppUrl;
 import teammates.common.util.Assumption;
 import teammates.common.util.Const;
 import teammates.test.cases.BaseTestCase;
@@ -11,17 +12,24 @@ import teammates.test.pageobjects.AppPage;
 import teammates.test.pageobjects.Browser;
 import teammates.test.pageobjects.DevServerLoginPage;
 import teammates.test.pageobjects.GoogleLoginPage;
-import teammates.test.util.Url;
 
 public class BaseUiTestCase extends BaseTestCase {
 
+    /** 
+     * Creates an {@link AppUrl} for the supplied {@code relativeUrl} parameter.
+     * {@code relativeUrl} must be a relative path.
+     */
+    protected static AppUrl createUrl(String relativeUrl) {
+        return TestProperties.getAppUrl(relativeUrl);
+    }
+    
     /**
      * Do an initial loginAdminToPage (may or may not involve explicit logging in action),
      * logs out, then logs in again (this time it will be an explicit logging in).
      * This is to handle the cases in admin UI tests where the admin username has to be the
      * one specified in <code>${test.admin}</code>.
      */
-    protected static <T extends AppPage> T loginAdminToPageForAdminUiTests(Browser browser, Url url,
+    protected static <T extends AppPage> T loginAdminToPageForAdminUiTests(Browser browser, AppUrl url,
                                                                            Class<T> typeOfPage) {
         loginAdminToPage(browser, url, typeOfPage);
         AppPage.logout(browser);
@@ -31,7 +39,7 @@ public class BaseUiTestCase extends BaseTestCase {
     /**
      * Logs in a page using admin credentials (i.e. in masquerade mode).
      */
-    protected static <T extends AppPage> T loginAdminToPage(Browser browser, Url url, Class<T> typeOfPage) {
+    protected static <T extends AppPage> T loginAdminToPage(Browser browser, AppUrl url, Class<T> typeOfPage) {
         
         String adminUsername = TestProperties.inst().TEST_ADMIN_ACCOUNT; 
         String adminPassword = TestProperties.inst().TEST_ADMIN_PASSWORD;
@@ -179,7 +187,7 @@ public class BaseUiTestCase extends BaseTestCase {
     }
 
     protected static AdminHomePage loginAdmin(Browser currentBrowser) {
-        return loginAdminToPage(currentBrowser, new Url(Const.ActionURIs.ADMIN_HOME_PAGE), AdminHomePage.class);
+        return loginAdminToPage(currentBrowser, createUrl(Const.ActionURIs.ADMIN_HOME_PAGE), AdminHomePage.class);
     }
 
 }
